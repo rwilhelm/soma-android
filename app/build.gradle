@@ -1,0 +1,52 @@
+apply plugin: 'com.android.application'
+
+android {
+    signingConfigs {
+        config {
+            keyAlias 'key0'
+            keyPassword '8cD2ULncxmnr0KwVHHspEdr7Fp8J56DpbWeClbxu8kC15VZEBZDHbheEiW8SyC5'
+            storeFile file('/home/asdf/local/keystores/android.jks')
+            storePassword 'A9Q2BToZFksGoMwxaCORKAXFKjLAZ82WNPvcE6cVWZJHtDSTJMj3XgTSkaQRlXt'
+        }
+    }
+    compileSdkVersion 25
+    buildToolsVersion "25.0.3"
+    defaultConfig {
+        applicationId "de.uniko.fb1.soma7"
+        minSdkVersion 17
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        signingConfig signingConfigs.config
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
+        }
+        debug {
+            signingConfig signingConfigs.config
+        }
+    }
+    productFlavors {
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.google.android.gms:play-services-maps:10.2.4'
+    compile 'com.google.android.gms:play-services-location:10.2.4'
+    compile 'com.google.firebase:firebase-core:10.2.4'
+    compile 'com.google.firebase:firebase-messaging:10.2.4'
+    compile 'com.google.firebase:firebase-invites:10.2.4'
+    testCompile 'junit:junit:4.12'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+}
+
+apply plugin: 'com.google.gms.google-services'

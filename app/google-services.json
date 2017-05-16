@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "288893270266",
+    "firebase_url": "https://soma-6678d.firebaseio.com",
+    "project_id": "soma-6678d",
+    "storage_bucket": "soma-6678d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:288893270266:android:eedc65e92f05e4c6",
+        "android_client_info": {
+          "package_name": "de.uniko.fb1.soma7"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "288893270266-ut9p12iihc771kr8v1kni1u7kcluvkfv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhqaUVO4wTuUIR2TskfaGqAKlDLTVaTLc"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">SoMA7</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="empty">emptystring</string>
+    <string name="permissionExplanation">Hello! Please click the button. :)</string>
+    <string name="ok">Okay</string>
+    <string name="cancel">Nope</string>
+    <string name="permissionPermanentlyDeclined">Permission permanently declined :/</string>
+    <string name="switchOnLocationShort">Switch on location (short)</string>
+    <string name="switchOnLocationLong">Switch on location (long)</string>
+    <string name="mockLocationMessage">Location simulation detected</string>
+    <string name="error">Oops, something went wrong.</string>
+</resources>
