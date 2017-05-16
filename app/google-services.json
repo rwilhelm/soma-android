@@ -8,20 +8,25 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:288893270266:android:eedc65e92f05e4c6",
+        "mobilesdk_app_id": "1:288893270266:android:38c90d3316c472a2",
         "android_client_info": {
           "package_name": "de.uniko.fb1.soma7"
         }
       },
       "oauth_client": [
         {
-          "client_id": "288893270266-ut9p12iihc771kr8v1kni1u7kcluvkfv.apps.googleusercontent.com",
-          "client_type": 3
+          "client_id": "288893270266-8ei5dd12rohrgnc2ej3kc3hp2phfh8hh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "de.uniko.fb1.soma7",
+            "certificate_hash": "137517b568bc466423e1bf73067f4acfb2d276dd"
+            // 13:75:17:B5:68:BC:46:64:23:E1:BF:73:06:7F:4A:CF:B2:D2:76:DD
+          }
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDhqaUVO4wTuUIR2TskfaGqAKlDLTVaTLc"
+          "current_key": "AIzaSyB3S5cGtUOHZ78MQqnl1lvsk0UzPI4hIRY"
         }
       ],
       "services": {
@@ -29,7 +34,7 @@
           "status": 1
         },
         "appinvite_service": {
-          "status": 1,
+          "status": 2,
           "other_platform_oauth_client": []
         },
         "ads_service": {

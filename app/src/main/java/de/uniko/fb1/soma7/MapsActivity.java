@@ -158,6 +158,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         tvLocation.setText(location.getLongitude() + "\n" + location.getLatitude());
         tvLocation.setAlpha(1.0f);
         tvLocation.animate().alpha(0.5f).setDuration(400);
+
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));
+
     }
 
     @Override
