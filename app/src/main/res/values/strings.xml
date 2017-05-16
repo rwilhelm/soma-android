@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">SoMA7</string>
+    <string name="app_name" translatable="false">SoMA</string>
     <string name="title_activity_maps">Map</string>
     <string name="empty">emptystring</string>
     <string name="permissionExplanation">Hello! Please click the button. :)</string>
@@ -10,4 +10,134 @@
     <string name="switchOnLocationLong">Switch on location (long)</string>
     <string name="mockLocationMessage">Location simulation detected</string>
     <string name="error">Oops, something went wrong.</string>
+    <string name="url" translatable="false">https://soma.uni-koblenz.de/api/</string>
+
+    <!--&lt;!&ndash;<string name="google_maps_api_key">AIzaSyDhWLYmSmd6QQ5gArYrHwatOu48NK5w-N8</string>&ndash;&gt;-->
+
+    <!--&lt;!&ndash; Hardcoded settings &ndash;&gt;-->
+
+    <!--&lt;!&ndash; Values of the location object &ndash;&gt;-->
+    <!--<string name="accuracy_label">Accuracy</string>-->
+    <!--<string name="altitude_label">Altitude</string>-->
+    <!--<string name="bearing_label">Bearing</string>-->
+    <!--<string name="elapsed_label">Age</string>-->
+    <!--<string name="latitude_label">Latitude</string>-->
+    <!--<string name="longitude_label">Longitude</string>-->
+    <!--<string name="speed_label">Speed</string>-->
+    <!--<string name="time_label">Last update</string>-->
+
+    <!--&lt;!&ndash; Time of last update &ndash;&gt;-->
+    <!--<string name="last_update_label">Last Update</string>-->
+
+    <!--&lt;!&ndash; Number of updates (currentTrip.size()) &ndash;&gt;-->
+    <!--<string name="location_count_label">Updates</string>-->
+    <!--<string name="trip_count_label">Trips</string>-->
+
+    <!--&lt;!&ndash; Start/Stop Button &ndash;&gt;-->
+
+    <!--&lt;!&ndash; Menu Items &ndash;&gt;-->
+    <!--<string name="action_settings">Settings</string>-->
+
+    <!--&lt;!&ndash; Setting Headers &ndash;&gt;-->
+
+    <!--&lt;!&ndash; Setting Headers :: Research Preferences &ndash;&gt;-->
+
+    <!--&lt;!&ndash; Notification Messages &ndash;&gt;-->
+
+    <!--&lt;!&ndash; Data Counter &ndash;&gt;-->
+    <!--<string name="stored_data_count_label">Data</string>-->
+
+    <!--&lt;!&ndash; Current Trip &ndash;&gt;-->
+    <!--<string name="current_trip_id_label">Current Trip</string>-->
+
+    <!--&lt;!&ndash; Buttons &ndash;&gt;-->
+    <!--<string name="button_text_service">SERVICE</string>-->
+    <!--<string name="button_text_upload">UPLOAD</string>-->
+    <!--<string name="title_activity_settings">Settings</string>-->
+
+    <!--&lt;!&ndash; Strings related to Settings &ndash;&gt;-->
+
+    <!--&lt;!&ndash; Example General settings &ndash;&gt;-->
+    <!--<string name="pref_header_general">General</string>-->
+
+    <!--&lt;!&ndash; Example settings for Data & Sync &ndash;&gt;-->
+
+    <!--&lt;!&ndash; Example settings for Notifications &ndash;&gt;-->
+
+    <!--<string name="pref_ringtone_silent">Silent</string>-->
+
+    <!--&lt;!&ndash; TODO: Remove or change this placeholder text &ndash;&gt;-->
+    <!--<string name="hello_blank_fragment">Hello blank fragment</string>-->
+
+    <!--&lt;!&ndash;&ndash;&gt;-->
+    <!--<string name="google_api_client_label">Google API Client</string>-->
+
+    <!--<string name="button_text_connect">Start</string>-->
+    <!--<string name="button_text_disconnect">Stop</string>-->
+
+    <!--<string name="is_location_available_label">Location available</string>-->
+
+    <!--<string name="db_trips_label">Trips</string>-->
+    <!--<string name="db_locations_label">Locations</string>-->
+    <!--<string name="location_request_interval_label">Request interval</string>-->
+    <!--<string name="location_priority_label">Location priority</string>-->
+    <!--<string name="location_smallest_displacement_label">Smallest Displacement</string>-->
+    <!--<string name="button_text_quit">Quit</string>-->
+    <!--<string name="seconds">seconds</string>-->
+    <!--<string name="meters">meters</string>-->
+    <!--<string name="medium">Medium</string>-->
+    <!--<string name="high">High</string>-->
+    <!--<string name="low">Low</string>-->
+    <!--<string name="very_low">Very low</string>-->
+    <!--<string name="msg_api_client_connected">Google API Client connected</string>-->
+    <!--<string name="msg_api_client_failure">Google API Client connection failure</string>-->
+    <!--<string name="msg_api_client_suspended">Google API Client connection suspended</string>-->
+    <!--<string name="connected">connected</string>-->
+    <!--<string name="disconnected">disconnected</string>-->
+    <!--<string name="connecting">connecting</string>-->
+    <!--<string name="pref_questionary">Questionary</string>-->
+
+
+    <!--<string name="pref_title_gender">Gender</string>-->
+    <!--<string name="pref_title_degree">Target degree</string>-->
+
+    <!--<string name="pref_title_place">Where do you study?</string>-->
+
+    <!--<string name="uniko">University of Koblenz-Landau, Campus Koblenz</string>-->
+    <!--<string name="unild">University of Koblenz-Landau, Campus Landau</string>-->
+    <!--<string name="fhko">Hochschule Koblenz</string>-->
+    <!--<string name="other_institute">Other institute</string>-->
+    <!--<string name="not_studying">Not studying</string>-->
+    <!--<string name="magister">Magister</string>-->
+    <!--<string name="master">Master</string>-->
+    <!--<string name="bachelor">Bachelor</string>-->
+    <!--<string name="diploma">Diplom</string>-->
+    <!--<string name="other_degree">Other degree</string>-->
+
+
+    <!--&lt;!&ndash;<string name="pref_title_sex">Sex</string>&ndash;&gt;-->
+    <!--&lt;!&ndash;<string name="pref_title_place">Die Institution, an der Sie studieren</string>&ndash;&gt;-->
+    <!--&lt;!&ndash;<string name="pref_title_degree">Welchen Abschluss streben Sie im aktuell eingeschriebenen Studiengang an?</string>&ndash;&gt;-->
+    <!--&lt;!&ndash;<string name="pref_title_degree_father">Welches ist der höchste allgemeinbildende Schulabschluss Ihres Vaters?</string>&ndash;&gt;-->
+    <!--&lt;!&ndash;<string name="pref_title_degree_mother">Welches ist der höchste allgemeinbildende Schulabschluss Ihrer Mutter?</string>&ndash;&gt;-->
+
+    <!--&lt;!&ndash;<string name="pref_title_job_group_father">Welcher Berufsgruppe gehört Ihr Vater an?</string>&ndash;&gt;-->
+    <!--&lt;!&ndash;<string name="pref_title_job_group_mother">Welcher Berufsgruppe gehört Ihre Mutter an?</string>&ndash;&gt;-->
+
+    <!--&lt;!&ndash;<string name="pref_title_job_worker">Arbeiter(in) und zwar…</string>&ndash;&gt;-->
+    <!--&lt;!&ndash;<string name="pref_title_job_employee">Angestellte(r) und zwar …</string>&ndash;&gt;-->
+    <!--&lt;!&ndash;<string name="pref_title_job_clerk">Beamter / Beamtin und zwar…</string>&ndash;&gt;-->
+    <!--&lt;!&ndash;<string name="pref_title_job_selfemployed">Selbstständige(r) im Handel, im Gewerbe, im Handwerk, in der Industrie, in der Landwirtschaft, in der Dienstleistung, der/die…</string>&ndash;&gt;-->
+    <!--&lt;!&ndash;<string name="pref_title_job_academic">Akademiker(in) in freiem Beruf (z.B. Arzt/Ärztin, Rechtsanwalt/-anwältin, Steuerberater(in)), der/die …</string>&ndash;&gt;-->
+
+    <!--&lt;!&ndash;<string name="pref_description_worker">Ein(e) Arbeiter(in) ist ein Mensch mit Erwerbstätigkeit (Lohnarbeit), die weitgehend aus physischer Arbeit ohne Selbständigkeit besteht.</string>&ndash;&gt;-->
+    <!--&lt;!&ndash;<string name="pref_description_employee">Ein(e) Angestellte(r) hat meistens höhere und verantwortlichere Posten und weniger auf Handwerk und Industriearbeit bezogen.</string>&ndash;&gt;-->
+    <!--&lt;!&ndash;<string name="pref_description_clerk">Ein Beamter/ eine Beamtin, welche(r) bei einer Behörde bestellt ist oder in deren Auftrag Aufgaben der öffentlichen Verwaltung wahrnimmt.</string>&ndash;&gt;-->
+    <!--&lt;!&ndash;<string name="pref_description_selfemployed">Selbständige sind definiert als Personen, die alleinige oder gemeinsame Eigentümer eines Unternehmens ohne eigene Rechtspersönlichkeit sind, in dem sie arbeiten.</string>&ndash;&gt;-->
+    <!--&lt;!&ndash;<string name="pref_description_academic">Als Akademiker(in) wird eine Person bezeichnet, die einen Hochschulabschluss besitzt. Ein(e) Akademiker(in) hat ein Staatsexamen (beispielsweise in Rechtswissenschaften oder Medizin) absolviert oder besitzt einen akademischen Grad.</string>&ndash;&gt;-->
+
+
+
+
+
 </resources>
