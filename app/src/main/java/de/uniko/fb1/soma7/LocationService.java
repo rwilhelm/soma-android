@@ -105,16 +105,16 @@ public class LocationService extends Service {
         return notification;
     }
 
-    private final BroadcastReceiver receiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if(action.equals(Constants.ACTION.ADD_LOCATION)){
-                Log.i(TAG, "ADD LOCATION");
-                currentTrip.add(intent.getParcelableExtra("location"));
-            }
-        }
-    };
+//    private final BroadcastReceiver receiver = new BroadcastReceiver() {
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            String action = intent.getAction();
+//            if(action.equals(Constants.ACTION.LOCATION_UPDATE)){
+//                Log.i(TAG, "ADD LOCATION");
+//                currentTrip.add(intent.getParcelableExtra("location"));
+//            }
+//        }
+//    };
 
     @Override
     public void onCreate() {
@@ -123,35 +123,32 @@ public class LocationService extends Service {
         startForeground(Constants.NOTIFICATION_ID.FOREGROUND_SERVICE, updateNotification().build());
         sendBroadcast(new Intent(Constants.ACTION.START_SERVICE));
 
-        final IntentFilter filter = new IntentFilter();
-        filter.addAction(Constants.ACTION.START_SERVICE);
+        /* TODO Cleanup */
 
-        this.locationReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                Log.i(TAG, "[LOCRCV] RECEIVED INTENT");
-
-                String action = intent.getAction();
-                if(action.equals(Constants.ACTION.ADD_LOCATION)){
-                    Log.i(TAG, "[LOCRCV] ADD LOCATION");
-                    currentTrip.add(intent.getParcelableExtra("location"));
-                }
-            }
-        };
-
-        this.registerReceiver(this.locationReceiver, filter);
-
-//        IntentFilter filter = new IntentFilter();
+//        final IntentFilter filter = new IntentFilter();
 //        filter.addAction(Constants.ACTION.START_SERVICE);
-//        registerReceiver(receiver, filter);
-
+//
+//        this.locationReceiver = new BroadcastReceiver() {
+//            @Override
+//            public void onReceive(Context context, Intent intent) {
+//                Log.i(TAG, "[LOCRCV] RECEIVED INTENT");
+//
+//                String action = intent.getAction();
+//                if(action.equals(Constants.ACTION.LOCATION_UPDATE)){
+//                    Log.i(TAG, "[LOCRCV] ADD LOCATION");
+//                    currentTrip.add(intent.getParcelableExtra("location"));
+//                }
+//            }
+//        };
+//
+//        this.registerReceiver(this.locationReceiver, filter);
     }
 
 
     /* Actions, e.g. commands to this service, are passed as Intent carrying an action constant. */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.v(TAG, "onStartCommand ");
+//        Log.v(TAG, "onStartCommand ");
 
         /* When the Intent is created in MainActitivy, we call setAction with
         Constants.ACTION.ENABLE_SERVICE */
@@ -170,22 +167,9 @@ public class LocationService extends Service {
                 uploadData();
                 stopForeground(true);
                 stopSelf();
-            } else if (action.equals(Constants.ACTION.ADD_LOCATION)) {
-                Bundle bundle = intent.getExtras();
-                if (bundle != null) {
-                    Location location = (Location) bundle.get("location");
-                    currentTrip.add(location);
-                }
-
-
-//
-//                    Parcel p = Parcel.obtain();
-//                objLocation.writeToParcel(p, 0);
-//                final byte[] b = p.marshall();      //now you've got bytes
-//                p.recycle();
-
-
-//                location = locationPar.readParcelable(Location.class.getClassLoader());
+            } else if (action.equals(Constants.ACTION.LOCATION_UPDATE)) {
+                Log.i(TAG, "[RECEIVE] LOCATION_UPDATE FIXME");
+//                Location location = intent.getParcelableExtra("location");
 //                currentTrip.add(location);
             } else {
                 Log.w(TAG, "UNKNOWN INTENT " + action);

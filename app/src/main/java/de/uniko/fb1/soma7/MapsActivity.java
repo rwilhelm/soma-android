@@ -10,15 +10,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -41,7 +41,7 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
     private TextView tvLocation;
     private static final int REQUEST_GOOGLE_PLAY_SERVICES = 1972;
 
-    private DataUpdateReceiver dataUpdateReceiver;
+    private MapsActivityReceiver mapsActivityReceiver;
     private MyReceiver myReceiver;
 //    private LocationService locationReceiver;
 
@@ -49,9 +49,6 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.v(TAG, "STARTUP :)");
-
-        /* Observable to monitor updates from our service */
-        ObservableObject.getInstance().addObserver(this);
 
         if (savedInstanceState == null) {
             startRegistrationService();
@@ -70,12 +67,9 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
 
         Switch toggle = (Switch) findViewById(R.id.toggle);
 
-
 //        Intent service = new Intent(MapsActivity.this, LocationService.class);
 //        service.setAction(Constants.ACTION.PROPAGATE_CHANGES);
 //        startService(service);
-
-
 
         uploadButton.setOnClickListener(v -> {
             View parentLayout = findViewById(android.R.id.content);
@@ -98,7 +92,7 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
         tvLocation = (TextView) findViewById(R.id.tvLocation);
         tvLocation.setText(getString(R.string.empty));
 
-        assistant = new LocationAssistant(this, this, LocationAssistant.Accuracy.HIGH, 5000, false);
+        assistant = new LocationAssistant(this, this, LocationAssistant.Accuracy.HIGH, Constants.UPDATE_INTERVAL, false);
         assistant.setVerbose(true);
 
         Log.v(TAG, "Google Play Services available: " + checkPlayServices());
@@ -156,24 +150,18 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
     public void onExplainLocationPermission() {
         new AlertDialog.Builder(this)
                 .setMessage(R.string.permissionExplanation)
-                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                        assistant.requestLocationPermission();
-                    }
+                .setPositiveButton(R.string.ok, (dialog, which) -> {
+                    dialog.dismiss();
+                    assistant.requestLocationPermission();
                 })
-                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                        tvLocation.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                assistant.requestLocationPermission();
-                            }
-                        });
-                    }
+                .setNegativeButton(R.string.cancel, (dialog, which) -> {
+                    dialog.dismiss();
+                    tvLocation.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            assistant.requestLocationPermission();
+                        }
+                    });
                 })
                 .show();
     }
@@ -213,7 +201,18 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
     public void onNewLocationAvailable(Location location) {
         Log.d(TAG, "onNewLocationAvailable " + location);
         if (location == null) return;
-        sendBroadcast(new Intent(Constants.ACTION.ADD_LOCATION).putExtra("location", location));
+        sendBroadcast(new Intent(Constants.ACTION.LOCATION_UPDATE).putExtra("location", location));
+
+//        Intent service = new Intent(MapsActivity.this, LocationService.class);
+//        service.setAction(Constants.ACTION.LOCATION_UPDATE);
+//        Parcel parcel = Parcel.obtain();
+//        location.writeToParcel(parcel, Parcelable.PARCELABLE_WRITE_RETURN_VALUE);
+//        service.putExtra("location", location);
+//        startService(service);
+
+
+        updateMap(location);
+        updateUI(location);
     }
 
     @Override
@@ -227,9 +226,9 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
         tvLocation.setText(getString(R.string.error));
     }
 
-    public class DataUpdateReceiver extends BroadcastReceiver {
+    public class MapsActivityReceiver extends BroadcastReceiver {
 
-        private static final String TAG = "DataUpdateReceiver";
+        private static final String TAG = "MapsActivityReceiver";
 
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -241,24 +240,6 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
                 case Constants.ACTION.ASSISTANT_PERMISSION_UPDATED:
                     Log.v(TAG, "ASSISTANT_PERMISSION_UPDATED");
                     tvLocation.setOnClickListener(null); // FIXME
-                    break;
-
-                case Constants.ACTION.LOCATION_UPDATE:
-                    Location location = intent.getParcelableExtra("location");
-                    Log.v(TAG, "LOCATION_UPDATE " + location);
-                    updateMap(location);
-                    updateUI(location);
-                    Log.w(TAG, "TODO: ADD LOCATION TO DB");
-//                    LocationService.updateTrip(context, location);
-
-//                    Intent service = new Intent(MapsActivity.this, LocationService.class);
-//                    service.setAction(Constants.ACTION.ADD_LOCATION);
-//                    startService(service);
-
-                    sendBroadcast(new Intent(Constants.ACTION.ADD_LOCATION).putExtra("location", location));
-
-
-
                     break;
 
                 default:
@@ -279,48 +260,23 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
     private void registerBroadcastReceiver() {
         Log.v(TAG, "Register broadcast receivers");
 
-//        if (locationReceiver == null) locationReceiver = new LocationService();
-//        registerReceiver(locationReceiver, new IntentFilter(Constants.ACTION.ADD_LOCATION));
-
-
         if (myReceiver == null) myReceiver = new MyReceiver();
+        registerReceiver(myReceiver, new IntentFilter(Intent.ACTION_BOOT_COMPLETED));
         registerReceiver(myReceiver, new IntentFilter(Intent.ACTION_SHUTDOWN));
         registerReceiver(myReceiver, new IntentFilter(Intent.ACTION_BUG_REPORT));
-        registerReceiver(myReceiver, new IntentFilter(Intent.ACTION_POWER_CONNECTED));
         registerReceiver(myReceiver, new IntentFilter(Constants.ACTION.UPLOAD_DATA));
-        registerReceiver(myReceiver, new IntentFilter(Constants.ACTION.ADD_LOCATION));
+        registerReceiver(myReceiver, new IntentFilter(Constants.ACTION.LOCATION_UPDATE));
         registerReceiver(myReceiver, new IntentFilter(Constants.ACTION.ON_CONNECTION_FAILED));
         registerReceiver(myReceiver, new IntentFilter(Constants.ACTION.ALL_UPLOADS_SUCCESSFUL));
 
-
-        if (dataUpdateReceiver == null) dataUpdateReceiver = new DataUpdateReceiver();
-        registerReceiver(dataUpdateReceiver, new IntentFilter(Constants.ACTION.LOCATION_UPDATE));
-        registerReceiver(dataUpdateReceiver, new IntentFilter(Constants.ACTION.GOOGLE_API_CONNECTION_SUCCESS));
-        registerReceiver(dataUpdateReceiver, new IntentFilter(Constants.ACTION.GOOGLE_API_CONNECTION_FAILURE));
-        registerReceiver(dataUpdateReceiver, new IntentFilter(Constants.ACTION.GOOGLE_API_CONNECTION_SUSPEND));
-        registerReceiver(dataUpdateReceiver, new IntentFilter(Constants.ACTION.GOOGLE_API_CLIENT_IS_CONNECTED));
-        registerReceiver(dataUpdateReceiver, new IntentFilter(Constants.ACTION.GOOGLE_API_CLIENT_IS_DISCONNECTED));
-        registerReceiver(dataUpdateReceiver, new IntentFilter(Constants.ACTION.GOOGLE_API_CLIENT_IS_CONNECTING));
-        registerReceiver(dataUpdateReceiver, new IntentFilter(Constants.ACTION.FUSED_LOCATION_API_CONNECTED));
-        registerReceiver(dataUpdateReceiver, new IntentFilter(Constants.ACTION.FUSED_LOCATION_API_DISCONNECTED));
-        registerReceiver(dataUpdateReceiver, new IntentFilter(Constants.ACTION.LOCATION_AVAILABILITY));
-        registerReceiver(dataUpdateReceiver, new IntentFilter(Constants.ACTION.LOCATION_PREFERENCES));
-        registerReceiver(dataUpdateReceiver, new IntentFilter(Constants.ACTION.DB_LOCATION_ADDED));
-        registerReceiver(dataUpdateReceiver, new IntentFilter(Constants.ACTION.DB_TRIP_ADDED));
-        registerReceiver(dataUpdateReceiver, new IntentFilter(Constants.ACTION.STOP_SERVICE));
-        registerReceiver(dataUpdateReceiver, new IntentFilter(Constants.ACTION.ADD_LOCATION));
-        registerReceiver(dataUpdateReceiver, new IntentFilter(Constants.ACTION.ASSISTANT_PERMISSION_UPDATED));
-
-        Log.v(TAG, "RECEIVER >>> " + dataUpdateReceiver);
-        Log.v(TAG, "RECEIVER >>> " + myReceiver);
-        Log.v(TAG, "RECEIVER >>> " + dataUpdateReceiver);
-//        Log.v(TAG, "RECEIVER >>> " + myReceiver.onReceive(this, ););
+        if (mapsActivityReceiver == null) mapsActivityReceiver = new MapsActivityReceiver();
+        registerReceiver(mapsActivityReceiver, new IntentFilter(Constants.ACTION.ASSISTANT_PERMISSION_UPDATED));
     }
 
     /* Unregister broadcast receivers */
     private void unregisterBroadcastReceiver() {
         Log.v(TAG, "Unregister broadcast receivers");
-        if (dataUpdateReceiver != null) unregisterReceiver(dataUpdateReceiver);
+        if (mapsActivityReceiver != null) unregisterReceiver(mapsActivityReceiver);
         if (myReceiver != null) unregisterReceiver(myReceiver);
     }
 

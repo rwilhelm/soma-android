@@ -12,18 +12,6 @@ public class MyReceiver extends BroadcastReceiver {
 
     private static final String TAG = "MyReceiver";
 
-    private void setAlarm(Context context) {
-        AlarmManager alarmMgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        Intent i = new Intent(context, LocationService.class);
-        PendingIntent alarmIntent = PendingIntent.getBroadcast(context, 0, i, 0);
-
-        Log.d(TAG, "setAlarm: " + SystemClock.elapsedRealtime() + AlarmManager.INTERVAL_FIFTEEN_MINUTES);
-        alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                SystemClock.elapsedRealtime() + AlarmManager.INTERVAL_FIFTEEN_MINUTES,
-                AlarmManager.INTERVAL_FIFTEEN_MINUTES,
-                alarmIntent);
-    }
-
     @Override
     public void onReceive(Context context, Intent intent) {
 
@@ -33,51 +21,64 @@ public class MyReceiver extends BroadcastReceiver {
             /* Start the service on boot */
             context.startService(new Intent(context, LocationService.class));
 
-            /* Setup the alarm to schedule uploading */
-            setAlarm(context);
+            /* Setup the first alarm to schedule uploading */
+            AlarmManager alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            Intent i = new Intent(context, LocationService.class);
+
+            alarm.setInexactRepeating(
+                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                    SystemClock.elapsedRealtime() + Constants.UPLOAD_INTERVAL, // triggerAtMillis
+                    Constants.UPLOAD_INTERVAL, // intervalMillis
+                    PendingIntent.getBroadcast(context, 0, i, 0)
+            );
 
         } else if (intent.getAction().equals(Intent.ACTION_SHUTDOWN)) {
             Log.i(TAG, "ACTION_SHUTDOWN");
+
+            /* TODO Make sure all data is saved and try upload when the device shuts down */
+
         } else if (intent.getAction().equals(Intent.ACTION_BUG_REPORT)) {
             Log.i(TAG, "ACTION_BUG_REPORT");
-        } else if (intent.getAction().equals(Intent.ACTION_POWER_CONNECTED)) {
-            Log.i(TAG, "ACTION_POWER_CONNECTED");
+
+            /* TODO Implement crash reporting */
+
         } else if (intent.getAction().equals(Constants.ACTION.UPLOAD_DATA)) {
             Log.i(TAG, "ACTION_UPLOAD_DATA");
 
             /*
                The broadcast is first sent by our location service. We then do two things here:
                (1) Setup the next alarm (same same) and (2) send an intent to the location service
-               to upload the data, please.
+               to maybe upload the data.
             */
 
             /* Setup the next alarm */
             AlarmManager alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            Intent i = new Intent(Constants.ACTION.SCHEDULED_UPLOAD);
+
             alarm.set(
                     AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                    SystemClock.elapsedRealtime() + Constants.UPLOAD_SCHEDULE,
-                    PendingIntent.getBroadcast(context, 0, new Intent(Constants.ACTION.SCHEDULED_UPLOAD), 0)
+                    SystemClock.elapsedRealtime() + Constants.UPLOAD_INTERVAL,
+                    PendingIntent.getBroadcast(context, 0, i, 0)
             );
 
             /* Send an upload intent to our location service */
+            Intent uploadIntent = new Intent(context, LocationService.class);
+
+            // PendingIntent.getService(context, requestCode, service, flags);
+            uploadIntent.setAction(Constants.ACTION.UPLOAD_DATA);
+            context.startService(uploadIntent);
+
+        } else if (intent.getAction().equals(Constants.ACTION.LOCATION_UPDATE)) {
+            Log.i(TAG, "LOCATION_UPDATE");
+
             Intent service = new Intent(context, LocationService.class);
-            //PendingIntent.getService(context, requestCode, service, flags);
-            service.setAction(Constants.ACTION.UPLOAD_DATA);
+            service.setAction(Constants.ACTION.LOCATION_UPDATE);
             context.startService(service);
-
-
 
         } else if (intent.getAction().equals(Constants.ACTION.ON_CONNECTION_FAILED)) {
             Log.i(TAG, "ON_CONNECTION_FAILED");
-            ObservableObject.getInstance().updateValue(intent);
-
-
-
         } else if (intent.getAction().equals(Constants.ACTION.ALL_UPLOADS_SUCCESSFUL)) {
             Log.i(TAG, "ALL_UPLOADS_SUCCESSFUL");
-            Log.e(TAG , "onReceive ============================");
-
-
         } else {
             Log.wtf(TAG, "UnsupportedOperationException",
                     new UnsupportedOperationException("Not yet implemented: " + intent.getAction()));

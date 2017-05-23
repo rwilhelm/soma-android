@@ -112,10 +112,13 @@ public class Trip {
     }
 
     public Boolean add(Context context, Location location) {
+        if (location == null) {
+            return false;
+        }
+
         DatabaseHelper db = DatabaseHelper.getInstance(context);
         if (db.addLocation(location, this) > -1) {
             Log.i(TAG, "ADDED LOCATION ");
-//            broadcastLastLocation(); // TODO
             return true;
         } else {
             Log.e(TAG, "FAILED ADDING LOCATION ");
@@ -123,17 +126,20 @@ public class Trip {
         }
     }
 
-    public Boolean add(Location location) {
-        DatabaseHelper db = DatabaseHelper.getInstance(context);
-        if (db.addLocation(location, this) > -1) {
-            Log.i(TAG, "ADDED LOCATION ");
-//            broadcastLastLocation(); // TODO
-            return true;
-        } else {
-            Log.e(TAG, "FAILED ADDING LOCATION ");
-            return false;
-        }
-    }
+//    public Boolean add(Location location) {
+//        if (location == null) return
+//
+//        DatabaseHelper db = DatabaseHelper.getInstance(context);
+//        if (db.addLocation(location, this) > -1) {
+//            Log.i(TAG, "ADDED LOCATION ");
+//            return true;
+//        } else {
+//            Log.e(TAG, "FAILED ADDING LOCATION ");
+//            return false;
+//        }
+//    }
+
+
 
 //    private void broadcastLastLocation() {
 //        Location location = MapsActivity.lastLocation;

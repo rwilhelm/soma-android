@@ -1,5 +1,6 @@
 package de.uniko.fb1.soma7;
 
+import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -54,9 +55,6 @@ class DatabaseHelper extends SQLiteOpenHelper {
     // Get always the same instance
     private static DatabaseHelper sInstance;
 
-    // Action Constants
-    private static final String GET_TRIP_JSON_FROM_DB = "GET_TRIP_JSON_FROM_DB";
-
     /**
      * Constructor should be private to prevent direct instantiation.
      * Make a call to the static method "getInstance()" instead.
@@ -79,23 +77,6 @@ class DatabaseHelper extends SQLiteOpenHelper {
 
         return sInstance;
     }
-
-//    JSONObject tripJSONObject(Context context, String tripId) {
-//        Log.d(TAG, GET_TRIP_JSON_FROM_DB);
-//        JSONObject json = new JSONObject();
-////        this.getTrip(tripId);
-////        Trip trip = LocationService.currentTrip;
-//
-//        try {
-//            json.put(KEY_CLIENT_UUID, trip.getAndroidId());
-//            json.put(KEY_TRIP_UUID, trip.getUUID());
-//            json.put(KEY_TRIP_LOCATION_DATA, trip.getDataJSON(context));
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        }
-//
-//        return json;
-//    }
 
     /*
      * Called when the database connection is being configured..
@@ -197,7 +178,7 @@ class DatabaseHelper extends SQLiteOpenHelper {
      */
     long addLocation(Location location, Trip trip) {
 
-//        Log.d(TAG, "addLocation: " + location + " tripId=" + trip.getId());
+        Log.d(TAG, "addLocation: " + location + " tripId=" + trip.getId());
 
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
@@ -272,11 +253,6 @@ class DatabaseHelper extends SQLiteOpenHelper {
             }
         }
 
-//        if (locationCount(tripId) != locations.size()) {
-//            Log.wtf(TAG, "WARNING MISCOUNTED LOCATIONS" + locationCount(tripId) + " " + locations.size());
-//        }
-
-//        Log.i(TAG, "" + locations); FIXME
         return locations;
     }
 
