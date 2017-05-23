@@ -10,15 +10,18 @@ import android.util.Log;
  * Created by asdf on 2/8/17.
  */
 
-public class UploadDataTask extends AsyncTask<Trip, Integer, String> {
-    private static final String TAG = "UploadDataTask";
+class UploadAsyncTask extends AsyncTask<Trip, Integer, String> {
+    private static final String TAG = "UploadAsyncTask";
     private final Context context;
+//
+//    public static final MediaType JSON
+//            = MediaType.parse("application/json; charset=utf-8");
 
     /**
      * Creates a new asynchronous task.
      * This constructor must be invoked on the UI thread.
      */
-    public UploadDataTask(Context context) {
+    public UploadAsyncTask(Context context) {
         super();
         this.context = context;
     }
@@ -29,14 +32,33 @@ public class UploadDataTask extends AsyncTask<Trip, Integer, String> {
         // TODO Read this ...
         // http://stackoverflow.com/a/9963705/220472
 
-        UploadHelper uploader = new UploadHelper();
+        UploadHelperVolley uploader = new UploadHelperVolley();
+//        OkHttpClient client = new OkHttpClient();
+//        String url = "https://soma.uni-koblenz.de/api";
+        
         for (final Trip trip : params) {
             Log.i(TAG, "PARAMS TRIP " + trip.toString());
+//            String json = trip.getRequestBody();
+
+//            String post(String url, String json) throws IOException {
+//
+//                RequestBody body = RequestBody.create(JSON, );
+//
+//                Request request = new Request.Builder()
+//                        .url(url)
+//                        .post(body)
+//                        .build();
+//
+//                Response response = client.newCall(request).execute();
+//
+//                return response.body().string();
+//            }
 
             uploader.uploadTrip(context, trip, new VolleyCallback(){
                 @Override
                 public void onSuccessResponse(int httpStatusCode) {
                     Log.i(TAG, "UPLOAD SUCCESS " + httpStatusCode);
+                    trip.deleteFromDatabase();
                 }
 
                 @Override

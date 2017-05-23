@@ -52,6 +52,7 @@ import com.google.android.gms.location.LocationSettingsStatusCodes;
 /**
  * A helper class that monitors the available location info on behalf of a requesting activity or application.
  */
+@SuppressWarnings("SameParameterValue")
 public class LocationAssistant
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
@@ -175,12 +176,12 @@ public class LocationAssistant
     private final int REQUEST_LOCATION_PERMISSION = 1;
 
     // Parameters
-    protected Context context;
+    protected final Context context;
     private Activity activity;
     private Listener listener;
-    private int priority;
-    private long updateInterval;
-    private boolean allowMockLocations;
+    private final int priority;
+    private final long updateInterval;
+    private final boolean allowMockLocations;
     private boolean verbose;
     private boolean quiet;
 
@@ -504,6 +505,7 @@ public class LocationAssistant
         // Starting with API level >= 18 we can (partially) rely on .isFromMockProvider()
         // (http://developer.android.com/reference/android/location/Location.html#isFromMockProvider%28%29)
         // For API level < 18 we have to check the Settings.Secure flag
+        //noinspection deprecation
         if (Build.VERSION.SDK_INT < 18 &&
                 !android.provider.Settings.Secure.getString(context.getContentResolver(), android.provider.Settings
                         .Secure.ALLOW_MOCK_LOCATION).equals("0")) {
@@ -577,7 +579,7 @@ public class LocationAssistant
         }
     }
 
-    private DialogInterface.OnClickListener onGoToLocationSettingsFromDialog = new DialogInterface.OnClickListener() {
+    private final DialogInterface.OnClickListener onGoToLocationSettingsFromDialog = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int which) {
             if (activity != null) {
@@ -590,7 +592,7 @@ public class LocationAssistant
         }
     };
 
-    private View.OnClickListener onGoToLocationSettingsFromView = new View.OnClickListener() {
+    private final View.OnClickListener onGoToLocationSettingsFromView = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             if (activity != null) {
@@ -603,7 +605,7 @@ public class LocationAssistant
         }
     };
 
-    private DialogInterface.OnClickListener onGoToDevSettingsFromDialog = new DialogInterface.OnClickListener() {
+    private final DialogInterface.OnClickListener onGoToDevSettingsFromDialog = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int which) {
             if (activity != null) {
@@ -616,7 +618,7 @@ public class LocationAssistant
         }
     };
 
-    private View.OnClickListener onGoToDevSettingsFromView = new View.OnClickListener() {
+    private final View.OnClickListener onGoToDevSettingsFromView = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             if (activity != null) {
@@ -629,7 +631,7 @@ public class LocationAssistant
         }
     };
 
-    private DialogInterface.OnClickListener onGoToAppSettingsFromDialog = new DialogInterface.OnClickListener() {
+    private final DialogInterface.OnClickListener onGoToAppSettingsFromDialog = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int which) {
             if (activity != null) {
@@ -645,7 +647,7 @@ public class LocationAssistant
         }
     };
 
-    private View.OnClickListener onGoToAppSettingsFromView = new View.OnClickListener() {
+    private final View.OnClickListener onGoToAppSettingsFromView = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             if (activity != null) {
@@ -724,7 +726,7 @@ public class LocationAssistant
                     connectionResult.getErrorMessage());
     }
 
-    ResultCallback<LocationSettingsResult> onLocationSettingsReceived = new ResultCallback<LocationSettingsResult>() {
+    final ResultCallback<LocationSettingsResult> onLocationSettingsReceived = new ResultCallback<LocationSettingsResult>() {
         @Override
         public void onResult(@NonNull LocationSettingsResult result) {
             locationRequested = true;

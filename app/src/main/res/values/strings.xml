@@ -11,6 +11,8 @@
     <string name="mockLocationMessage">Location simulation detected</string>
     <string name="error">Oops, something went wrong.</string>
     <string name="url" translatable="false">https://soma.uni-koblenz.de/api/</string>
+    <string name="msg_api_client_failure">GOOGLE_API_CONNECTION_FAILURE</string>
+    <string name="msg_api_client_connected">connected</string>
 
     <!--&lt;!&ndash;<string name="google_maps_api_key">AIzaSyDhWLYmSmd6QQ5gArYrHwatOu48NK5w-N8</string>&ndash;&gt;-->
 

@@ -2,9 +2,9 @@ package de.uniko.fb1.soma7;
 
 import android.content.Context;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -23,9 +23,9 @@ import java.util.Map;
  * Created by asdf on 2/6/17.
  */
 
-public class UploadHelper {
+class UploadHelperVolley {
 
-    private static final String TAG = "UploadHelper";
+    private static final String TAG = "UploadHelperVolley";
 
     public void uploadTrip(final Context context, final Trip trip, final VolleyCallback callback) {
         final RequestQueue queue = Volley.newRequestQueue(context.getApplicationContext());
@@ -40,7 +40,7 @@ public class UploadHelper {
         Log.v(TAG, "REQUEST BODY " + requestBody);
 
 
-        String url = "https://soma.uni-koblenz.de/api/";
+        String url = "https://soma.uni-koblenz.de:5000/upload";
         final StringRequest uploadRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -76,13 +76,9 @@ public class UploadHelper {
             @Override
             protected Response<String> parseNetworkResponse(NetworkResponse response) {
                 int httpStatusCode = response.statusCode;
-//                if (Objects.equals(httpStatusCode, 200)) {
                 if (httpStatusCode == 200) {
-                    trip.deleteFromDatabase(); // TODO CAN SHOULD WE MOVE THIS ELSEWHERE?
                     callback.onSuccessResponse(httpStatusCode);
                 } else {
-                    Log.i(TAG, "UPLOAD FAILURE");
-                    Toast.makeText(context, "UPLOAD FAILURE", Toast.LENGTH_LONG).show();
                     callback.onFailureResponse(httpStatusCode);
                 }
                 return super.parseNetworkResponse(response);
@@ -115,6 +111,11 @@ public class UploadHelper {
         };
 
         queue.addRequestFinishedListener(listener);
+
+        uploadRequest.setRetryPolicy(new DefaultRetryPolicy(10000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
         queue.add(uploadRequest);
 
 //        MySingleton.getInstance(context).addToRequestQueue(uploadRequest);

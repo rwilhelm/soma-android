@@ -20,18 +20,18 @@ class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String TAG = "DatabaseHelper";
 
-    private Context context;
+    private final Context context;
 
     // Database Info
-    private static final int DATABASE_VERSION = 1;
-    private static final String DATABASE_NAME = "locationDatabase";
+    private static final int DATABASE_VERSION = 4;
+    private static final String DATABASE_NAME = "locationDatabase2";
 
     // Tables
     private static final String TABLE_TRIP = "trip";
     private static final String TABLE_LOCATION = "location";
 
     // Client Columns
-    private static final String KEY_ANDROID_ID = "androidId"; // remoteClientId @ API
+    private static final String KEY_CLIENT_UUID = "clientUUID"; // clientUUID @ API
 
     // Trip Columns
     private static final String KEY_TRIP_ID = "id";
@@ -49,7 +49,7 @@ class DatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_LOCATION_LATITUDE = "latitude";
     private static final String KEY_LOCATION_LONGITUDE = "longitude";
     private static final String KEY_LOCATION_SPEED = "speed";
-    private static final String KEY_LOCATION_TIME = "ts";
+    private static final String KEY_LOCATION_TIME = "timestamp";
 
     // Get always the same instance
     private static DatabaseHelper sInstance;
@@ -84,10 +84,10 @@ class DatabaseHelper extends SQLiteOpenHelper {
 //        Log.d(TAG, GET_TRIP_JSON_FROM_DB);
 //        JSONObject json = new JSONObject();
 ////        this.getTrip(tripId);
-////        Trip trip = MyLocationService.currentTrip;
+////        Trip trip = LocationService.currentTrip;
 //
 //        try {
-//            json.put(KEY_ANDROID_ID, trip.getAndroidId());
+//            json.put(KEY_CLIENT_UUID, trip.getAndroidId());
 //            json.put(KEY_TRIP_UUID, trip.getUUID());
 //            json.put(KEY_TRIP_LOCATION_DATA, trip.getDataJSON(context));
 //        } catch (JSONException e) {
@@ -120,7 +120,7 @@ class DatabaseHelper extends SQLiteOpenHelper {
                 "(" +
                 KEY_TRIP_ID + " INTEGER PRIMARY KEY, " +
                 KEY_TRIP_UUID + " TEXT, " +
-                KEY_ANDROID_ID + " TEXT" +
+                KEY_CLIENT_UUID + " TEXT" +
                 ")";
 
         String CREATE_LOCATION_TABLE = "CREATE TABLE " + TABLE_LOCATION +
@@ -151,6 +151,8 @@ class DatabaseHelper extends SQLiteOpenHelper {
      */
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        Log.d(TAG, "onUpgrade " + db + " " + oldVersion + " => " + newVersion);
+
         if (oldVersion != newVersion) {
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_TRIP);
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_LOCATION);
@@ -173,7 +175,7 @@ class DatabaseHelper extends SQLiteOpenHelper {
             ContentValues values = new ContentValues();
 
             values.put(KEY_TRIP_UUID, trip.getUUID());
-            values.put(KEY_ANDROID_ID, trip.getAndroidId());
+            values.put(KEY_CLIENT_UUID, trip.getClientUUID());
 
             id = Long.toString(db.insertOrThrow(TABLE_TRIP, null, values));
 
@@ -204,6 +206,8 @@ class DatabaseHelper extends SQLiteOpenHelper {
         try {
             ContentValues values = new ContentValues();
 
+            Log.d(TAG, "addLocation to trip " + trip.getId());
+
             values.put(KEY_LOCATION_TRIP_ID_FK, trip.getId());
             values.put(KEY_LOCATION_ACCURACY, location.getAccuracy());
             values.put(KEY_LOCATION_ALTITUDE, location.getAltitude());
@@ -216,13 +220,13 @@ class DatabaseHelper extends SQLiteOpenHelper {
             /* Be careful not to delete the trip after uploading and making the next addLocation
             call result in FOREIGN KEY failure. */
 
-//            Log.i(TAG, "VALUES " + values);
-
+            Log.i(TAG, "INSERT VALUES " + values);
             id = db.insertOrThrow(TABLE_LOCATION, null, values);
             db.setTransactionSuccessful();
-//            Log.d(TAG, "SUCCESS: " + TABLE_LOCATION + " INSERT " + values);
+            Log.d(TAG, "SUCCESS: " + TABLE_LOCATION + " NEW ID: " + id);
             return id;
         } catch (Exception e) {
+            Log.e(TAG, "addLocation to trip " + trip.getId() + " failed");
             Log.w(TAG, e);
             return -2;
         } finally {
@@ -292,7 +296,7 @@ class DatabaseHelper extends SQLiteOpenHelper {
         try {
             if (cursor.moveToFirst()) {
                 do {
-                    String androidId = cursor.getString(cursor.getColumnIndex(KEY_ANDROID_ID));
+                    String androidId = cursor.getString(cursor.getColumnIndex(KEY_CLIENT_UUID));
                     String uuid = cursor.getString(cursor.getColumnIndex(KEY_TRIP_UUID));
                     String id = cursor.getString(cursor.getColumnIndex(KEY_TRIP_ID));
                     trips.add(new Trip(context, androidId, uuid, id));
@@ -314,7 +318,7 @@ class DatabaseHelper extends SQLiteOpenHelper {
      * Get one trip from the database
      */
     JSONObject getTrip(String tripId) {
-        Log.d(TAG, "getTrips");
+        Log.d(TAG, "getTrip " + tripId);
 
         String LOCATIONS_SELECT_QUERY = String.format("SELECT * FROM %s WHERE id = %s", TABLE_TRIP, tripId);
 
@@ -326,11 +330,11 @@ class DatabaseHelper extends SQLiteOpenHelper {
         try {
             if (cursor.moveToFirst()) {
                 do {
-                    String androidId = cursor.getString(cursor.getColumnIndex(KEY_ANDROID_ID));
+                    String clientUUID = cursor.getString(cursor.getColumnIndex(KEY_CLIENT_UUID));
                     String tripUUID = cursor.getString(cursor.getColumnIndex(KEY_TRIP_UUID));
                     String id = cursor.getString(cursor.getColumnIndex(KEY_TRIP_ID));
 
-                    trip.put(KEY_ANDROID_ID, androidId);
+                    trip.put(KEY_CLIENT_UUID, clientUUID);
                     trip.put(KEY_TRIP_UUID, tripUUID);
 
                     List<JSONObject> locations = this.getLocations(id);
@@ -398,7 +402,7 @@ class DatabaseHelper extends SQLiteOpenHelper {
     void deleteTripAndLocations(Trip trip) {
 
         String tripId = trip.getId();
-        Log.i(TAG, "deleteTripAndLocations " + tripId);
+        Log.i(TAG, "deleteTripAndLocations: tripId: " + tripId);
 
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
