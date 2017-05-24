@@ -8,16 +8,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.location.Location;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import android.widget.Toast;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -32,88 +26,43 @@ public class LocationService extends Service {
 
     private BroadcastReceiver locationReceiver;
 
-    /* Location provider */
-//    public Trip currentTrip; // Current Trip
-
-//    public void updateTrip(Context context, Location location) {
-//        if (currentTrip == null) {
-//            currentTrip = new Trip(context);
-//        }
-//
-//        currentTrip.add(this, location);
-//
-//        Log.v(TAG, "[currentTrip] count: " + currentTrip.getDataCount());
-//
-//        if (currentTrip.getDataCount() > 100) {
-//            currentTrip.upload(this);
-//            currentTrip = new Trip(context);
-//        }
-//    }
-
-//    public void updateTrip(Location location) {
-//        if (currentTrip == null) {
-//            currentTrip = new Trip(context);
-//        }
-//
-//        currentTrip.add(this, location);
-//
-//        Log.v(TAG, "[currentTrip] count: " + currentTrip.getDataCount());
-//
-//        if (currentTrip.getDataCount() > 100) {
-//            currentTrip.upload(this);
-//            currentTrip = new Trip(context);
-//        }
-//    }
-
     /**
      * Show in notification bar
      **/
     private NotificationCompat.Builder updateNotification() {
-        Log.d(TAG, "updateNotification: ");
         DatabaseHelper db = DatabaseHelper.getInstance(this);
+
         long dataCount = db.countLocations();
+        String contentText = "Ihre persönlichen Daten werden gesammelt"; // TODO
+        Bitmap icon = BitmapFactory.decodeResource(getResources(),
+                R.drawable.ic_location_on);
+
         Intent notificationIntent = new Intent(this, MapsActivity.class);
-
         notificationIntent.setAction(Constants.ACTION.RESUME_FOREGROUND_ACTION);
-
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                 | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
                 notificationIntent, 0);
 
-        Bitmap icon = BitmapFactory.decodeResource(getResources(),
-                R.drawable.ic_location_on);
-
-        NotificationManager mNotificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
         NotificationCompat.Builder notification =
                 new NotificationCompat.Builder(this)
                         .setContentTitle(Constants.APP_NAME)
-                        .setContentText("") // TODO
+                        .setContentText(contentText)
                         .setContentInfo("Data: " + dataCount)
-                        .setSmallIcon(R.drawable.ic_location_on)
+                        .setSmallIcon(android.R.drawable.ic_menu_mylocation)
                         .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
                         .setContentIntent(pendingIntent)
                         .setOngoing(true);
 
-        mNotificationManager.notify(Constants.NOTIFICATION_ID.FOREGROUND_SERVICE, notification.build());
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
+        mNotificationManager.notify(Constants.NOTIFICATION_ID.FOREGROUND_SERVICE, notification.build());
+        
+        Log.d(TAG, "updateNotification: dataCount: " + dataCount + ", notificationIntent: " + contentText);
         return notification;
     }
-
-//    private final BroadcastReceiver receiver = new BroadcastReceiver() {
-//        @Override
-//        public void onReceive(Context context, Intent intent) {
-//            String action = intent.getAction();
-//            if(action.equals(Constants.ACTION.LOCATION_UPDATE)){
-//                Log.i(TAG, "ADD LOCATION");
-//                currentTrip.add(intent.getParcelableExtra("location"));
-//            }
-//        }
-//    };
-//    private LocationAssistant assistant;
 
     @Override
     public void onCreate() {
@@ -121,43 +70,13 @@ public class LocationService extends Service {
         Log.v(TAG, "onCreate");
         startForeground(Constants.NOTIFICATION_ID.FOREGROUND_SERVICE, updateNotification().build());
         sendBroadcast(new Intent(Constants.ACTION.START_SERVICE));
-
-//        assistant = new LocationAssistant(this, this, LocationAssistant.Accuracy.HIGH, Constants.UPDATE_INTERVAL, false);
-//        assistant.setVerbose(true);
-
-        /* TODO Cleanup */
-
-//        final IntentFilter filter = new IntentFilter();
-//        filter.addAction(Constants.ACTION.START_SERVICE);
-//
-//        this.locationReceiver = new BroadcastReceiver() {
-//            @Override
-//            public void onReceive(Context context, Intent intent) {
-//                Log.i(TAG, "[LOCRCV] RECEIVED INTENT");
-//
-//                String action = intent.getAction();
-//                if(action.equals(Constants.ACTION.LOCATION_UPDATE)){
-//                    Log.i(TAG, "[LOCRCV] ADD LOCATION");
-//                    currentTrip.add(intent.getParcelableExtra("location"));
-//                }
-//            }
-//        };
-//
-//        this.registerReceiver(this.locationReceiver, filter);
     }
 
-
-    /* Actions, e.g. commands to this service, are passed as Intent carrying an action constant. */
     @Override
+    /* Actions, e.g. commands to this service, are passed as Intent carrying an action constant. */
     public int onStartCommand(Intent intent, int flags, int startId) {
-//        Log.v(TAG, "onStartCommand ");
-
-        /* When the Intent is created in MainActitivy, we call setAction with
-        Constants.ACTION.ENABLE_SERVICE */
 
         if (intent != null) {
-
-            /* TODO How comes that intent can be null? */
 
             String action = intent.getAction();
             Log.i(TAG, "[RECEIVE] " + action);
@@ -169,14 +88,11 @@ public class LocationService extends Service {
                 case Constants.ACTION.QUIT_SERVICE:
                     Log.i(TAG, "[RECEIVE] QUIT_SERVICE");
                     uploadData();
-                    stopForeground(true);
+                    stopForeground(true); // TODO What is this?
                     stopSelf();
                     break;
                 case Constants.ACTION.LOCATION_UPDATE:
-//                    Location location = intent.getParcelableExtra("location");
-//                    Log.i(TAG, "[RECEIVE] LOCATION_UPDATE FIXME " + location);
-
-//                currentTrip.add(location);
+                    updateNotification();
                     break;
                 default:
                     Log.w(TAG, "UNKNOWN INTENT " + action);

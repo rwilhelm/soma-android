@@ -8,8 +8,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
@@ -25,29 +27,15 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
 
 public class MapsActivity extends FragmentActivity implements Observer, OnMapReadyCallback, LocationAssistant.Listener {
 
@@ -57,55 +45,23 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
     private LocationAssistant assistant;
     private TextView tvLocation;
     private static final int REQUEST_GOOGLE_PLAY_SERVICES = 1972;
-
     private MapsActivityReceiver mapsActivityReceiver;
     private MyReceiver myReceiver;
-//    private LocationService locationReceiver;
+    private List<Marker> myMarkers = new ArrayList<>();
 
-//
-//    public static HttpClient getTestHttpClient() {
-//        try {
-//            SSLSocketFactory sf = new SSLSocketFactory(new TrustStrategy(){
-//                @Override
-//                public boolean isTrusted(X509Certificate[] chain,
-//                                         String authType) throws CertificateException {
-//                    return true;
-//                }
-//            }, new AllowAllHostnameVerifier());
-//
-//            SchemeRegistry registry = new SchemeRegistry();
-//            registry.register(new Scheme("https",8444, sf));
-//            ClientConnectionManager ccm = new ThreadSafeClientConnManager(registry);
-//            return new DefaultHttpClient(ccm);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return new DefaultHttpClient();
-//        }
-//    }
-//
-//
-//    final SchemeRegistry schemeRegistry = new SchemeRegistry();
-//schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
-//schemeRegistry.register(new Scheme("https", createAdditionalCertsSSLSocketFactory(), 443));
-//
-//    // and then however you create your connection manager, I use ThreadSafeClientConnManager
-//    final HttpParams params = new BasicHttpParams();
-//...
-//    final ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(params,schemeRegistry);
-//
-
-
-
+    Button uploadButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.v(TAG, "STARTUP :)");
+        Log.v(TAG, "" +
+                "" +
+                "STARTUP :)" +
+                "" +
+                "");
 
         if (savedInstanceState == null) {
             startRegistrationService();
-        } else {
-            Log.w(TAG, "onCreate: NOT STARTING THE BACKGROUND SERVICE SORRY MAN");
         }
 
         setContentView(R.layout.activity_maps);
@@ -113,15 +69,12 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
+
         mapFragment.getMapAsync(this);
 
         uploadButton = (Button) findViewById(R.id.upload);
 
         Switch toggle = (Switch) findViewById(R.id.toggle);
-
-//        Intent service = new Intent(MapsActivity.this, LocationService.class);
-//        service.setAction(Constants.ACTION.PROPAGATE_CHANGES);
-//        startService(service);
 
         uploadButton.setOnClickListener(v -> {
             View parentLayout = findViewById(android.R.id.content);
@@ -145,7 +98,7 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
         tvLocation.setText(getString(R.string.empty));
 
         assistant = new LocationAssistant(this, this, LocationAssistant.Accuracy.HIGH, Constants.UPDATE_INTERVAL, false);
-        assistant.setVerbose(true);
+        assistant.setVerbose(false);
 
         Log.v(TAG, "Google Play Services available: " + checkPlayServices());
     }
@@ -154,7 +107,7 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
     protected void onPause() {
         Log.v(TAG, "[1] onPause");
         unregisterBroadcastReceiver();
-//        assistant.stop();
+//        assistant.stop(); // TODO Really not neccessary?
         super.onPause();
     }
 
@@ -163,7 +116,7 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
         super.onResume();
         Log.v(TAG, "[4] onResume");
         registerBroadcastReceiver();
-//        assistant.start();
+//        assistant.start(); // TODO Can this be deleted?
     }
 
     @Override
@@ -174,25 +127,9 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch(requestCode) {
-            case REQUEST_GOOGLE_PLAY_SERVICES:
-                if (resultCode == Activity.RESULT_OK) {
-                    startLocationService();
-                } else {
-                    Log.w(TAG, "onActivityResult: GOOGLE PLAY SERVICES ARE NOT OKAY :/");
-                }
-                break;
-            default:
-                super.onActivityResult(requestCode, resultCode, data);
-        }
-    }
-
-    @Override
     public void onNeedLocationPermission() {
         updateMap(assistant.bestLocation);
         updateUI(assistant.bestLocation);
-
         tvLocation.setText("Need\nPermission");
         tvLocation.setOnClickListener(view -> assistant.requestLocationPermission());
         assistant.requestAndPossiblyExplainLocationPermission();
@@ -208,12 +145,7 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
                 })
                 .setNegativeButton(R.string.cancel, (dialog, which) -> {
                     dialog.dismiss();
-                    tvLocation.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            assistant.requestLocationPermission();
-                        }
-                    });
+                    tvLocation.setOnClickListener(v -> assistant.requestLocationPermission());
                 })
                 .show();
     }
@@ -231,12 +163,9 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
     public void onNeedLocationSettingsChange() {
         new AlertDialog.Builder(this)
                 .setMessage(R.string.switchOnLocationShort)
-                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                        assistant.changeLocationSettings();
-                    }
+                .setPositiveButton(R.string.ok, (dialog, which) -> {
+                    dialog.dismiss();
+                    assistant.changeLocationSettings();
                 })
                 .show();
     }
@@ -254,24 +183,8 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
         Log.d(TAG, "onNewLocationAvailable " + location);
         if (location == null) return;
         sendBroadcast(new Intent(Constants.ACTION.LOCATION_UPDATE).putExtra("location", location));
-
-//        Intent service = new Intent(MapsActivity.this, LocationService.class);
-//        service.setAction(Constants.ACTION.LOCATION_UPDATE);
-//        Parcel parcel = Parcel.obtain();
-//        location.writeToParcel(parcel, Parcelable.PARCELABLE_WRITE_RETURN_VALUE);
-//        service.putExtra("location", location);
-//        startService(service);
-
         DatabaseHelper db = DatabaseHelper.getInstance(this);
-
         db.addLocation(location);
-
-//        if ( > -1) {
-//            Log.i(TAG, "ADDED LOCATION ");
-//        } else {
-//            Log.e(TAG, "FAILED ADDING LOCATION ");
-//        }
-
         updateMap(location);
         updateUI(location);
     }
@@ -300,7 +213,7 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
 
                 case Constants.ACTION.ASSISTANT_PERMISSION_UPDATED:
                     Log.v(TAG, "ASSISTANT_PERMISSION_UPDATED");
-                    tvLocation.setOnClickListener(null); // FIXME
+                    tvLocation.setOnClickListener(null); // TODO Why is that here?
                     break;
 
                 default:
@@ -367,47 +280,7 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
     @Override
     public void onMapReady(GoogleMap googleMap) {
         Log.v(TAG, "onMapReady");
-
         mMap = googleMap;
-        // Add a marker in Sydney and move the camera
-//        LatLng sydney = new LatLng(-34, 151);
-//        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-//        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-    }
-
-
-
-
-
-
-
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        assistant.onActivityResult(requestCode, resultCode);
-//    }
-
-    private void startLocationService() {
-        /*
-         * Start the service if it's not running.
-         * TODO Check if Google Play Services are available, fallback to Android Location API
-         * 10084000
-         */
-        if (isGooglePlayServicesAvailable(this)) {
-            Log.v(TAG, "Google Play Services are available");
-//            if (!isMyServiceRunning(LocationService.class)) {
-//                Log.i(TAG, "startLocationService: [ACTION] " + Constants.ACTION.ENABLE_SERVICE);
-//                Intent service = new Intent(MapsActivity.this, LocationService.class);
-//                service.setAction(Constants.ACTION.ENABLE_SERVICE);
-//                startService(service);
-//            } else {
-//                Log.i(TAG, "startLocationService: [ACTION] " + Constants.ACTION.PROPAGATE_CHANGES);
-//                Intent service = new Intent(MapsActivity.this, LocationService.class);
-//                service.setAction(Constants.ACTION.PROPAGATE_CHANGES);
-//                startService(service);
-//            }
-        } else {
-            Log.w(TAG, "Google Play Services not available");
-        }
     }
 
     /* Check if service is running*/
@@ -421,18 +294,27 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
         return false;
     }
 
-    private boolean isGooglePlayServicesAvailable(Context context){
-        GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
-        int resultCode = googleApiAvailability.isGooglePlayServicesAvailable(context);
-        Log.v(TAG, "Checking if Google Play Services are available ... " + (resultCode == ConnectionResult.SUCCESS));
-        return resultCode == ConnectionResult.SUCCESS;
-    }
-
-
-
     public void updateMap(Location location) {
         LatLng latest = new LatLng(location.getLatitude(), location.getLongitude());
-        mMap.addMarker(new MarkerOptions().position(latest).title("" + location.getTime()));
+        DatabaseHelper db = DatabaseHelper.getInstance(this);
+
+        mMap.clear();
+
+        Polyline line = mMap.addPolyline(new PolylineOptions()
+                .width(5)
+                .color(Color.RED));
+
+        List<LatLng> latLngs = new ArrayList<>();
+        db.getLocations().forEach(l -> latLngs.add(l.getLatLng()));
+        line.setPoints(latLngs);
+
+        for (Marker m: myMarkers) {
+            m.remove();
+        }
+
+        Marker marker = mMap.addMarker(new MarkerOptions().position(latest).title("" + location.getTime()));
+
+        myMarkers.add(marker);
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latest, 14));
     }
 
@@ -442,13 +324,6 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
         tvLocation.setAlpha(1.0f);
         tvLocation.animate().alpha(0.5f).setDuration(400);
     }
-
-//    void addLocationToDB(Location location) {
-//        DatabaseHelper db = DatabaseHelper.getInstance(this);
-//        if (db.addLocation(location, currentTrip) > -1) {
-//            broadcastLastLocation();
-//        }
-//    }
 
     // http://stackoverflow.com/a/31016761/220472
     private boolean checkPlayServices() {
@@ -465,31 +340,10 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
     }
 
     private void showSnackBar(View view, String string) {
-//        Snackbar.make(view, string, Snackbar.LENGTH_SHORT).show();
+        Snackbar.make(view, string, Snackbar.LENGTH_SHORT).show();
     }
-
+//
 //    private void showToast(Context context, String string) {
 //        Toast.makeText(context, string, Toast.LENGTH_SHORT).show();
 //    }
-
-
-
-    private Button uploadButton;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

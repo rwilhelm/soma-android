@@ -1,6 +1,5 @@
 package de.uniko.fb1.soma7;
 
-import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -9,11 +8,9 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.location.Location;
 import android.util.Log;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 // https://github.com/codepath/android_guides/wiki/Local-Databases-with-SQLiteOpenHelper
@@ -168,6 +165,10 @@ class DatabaseHelper extends SQLiteOpenHelper {
 
         public int getId() {
             return this.id;
+        }
+
+        public LatLng getLatLng() {
+            return new LatLng(this.latitude, this.longitude);
         }
     }
 
