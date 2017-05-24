@@ -1,25 +1,23 @@
 package de.uniko.fb1.soma7;
 
-import android.app.AlarmManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
-import android.os.Bundle;
 import android.os.IBinder;
-import android.os.Parcel;
-import android.os.Parcelable;
-import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -35,22 +33,22 @@ public class LocationService extends Service {
     private BroadcastReceiver locationReceiver;
 
     /* Location provider */
-    public Trip currentTrip; // Current Trip
+//    public Trip currentTrip; // Current Trip
 
-    public void updateTrip(Context context, Location location) {
-        if (currentTrip == null) {
-            currentTrip = new Trip(context);
-        }
-
-        currentTrip.add(this, location);
-
-        Log.v(TAG, "[currentTrip] count: " + currentTrip.getDataCount());
-
-        if (currentTrip.getDataCount() > 100) {
-            currentTrip.upload(this);
-            currentTrip = new Trip(context);
-        }
-    }
+//    public void updateTrip(Context context, Location location) {
+//        if (currentTrip == null) {
+//            currentTrip = new Trip(context);
+//        }
+//
+//        currentTrip.add(this, location);
+//
+//        Log.v(TAG, "[currentTrip] count: " + currentTrip.getDataCount());
+//
+//        if (currentTrip.getDataCount() > 100) {
+//            currentTrip.upload(this);
+//            currentTrip = new Trip(context);
+//        }
+//    }
 
 //    public void updateTrip(Location location) {
 //        if (currentTrip == null) {
@@ -73,7 +71,7 @@ public class LocationService extends Service {
     private NotificationCompat.Builder updateNotification() {
         Log.d(TAG, "updateNotification: ");
         DatabaseHelper db = DatabaseHelper.getInstance(this);
-        long dataCount = db.countAllData();
+        long dataCount = db.countLocations();
         Intent notificationIntent = new Intent(this, MapsActivity.class);
 
         notificationIntent.setAction(Constants.ACTION.RESUME_FOREGROUND_ACTION);
@@ -115,6 +113,7 @@ public class LocationService extends Service {
 //            }
 //        }
 //    };
+//    private LocationAssistant assistant;
 
     @Override
     public void onCreate() {
@@ -122,6 +121,9 @@ public class LocationService extends Service {
         Log.v(TAG, "onCreate");
         startForeground(Constants.NOTIFICATION_ID.FOREGROUND_SERVICE, updateNotification().build());
         sendBroadcast(new Intent(Constants.ACTION.START_SERVICE));
+
+//        assistant = new LocationAssistant(this, this, LocationAssistant.Accuracy.HIGH, Constants.UPDATE_INTERVAL, false);
+//        assistant.setVerbose(true);
 
         /* TODO Cleanup */
 
@@ -160,19 +162,25 @@ public class LocationService extends Service {
             String action = intent.getAction();
             Log.i(TAG, "[RECEIVE] " + action);
 
-            if (action.equals(Constants.ACTION.UPLOAD_DATA)) {
-                uploadData();
-            } else if (action.equals(Constants.ACTION.QUIT_SERVICE)) {
-                Log.i(TAG, "[RECEIVE] QUIT_SERVICE");
-                uploadData();
-                stopForeground(true);
-                stopSelf();
-            } else if (action.equals(Constants.ACTION.LOCATION_UPDATE)) {
-                Log.i(TAG, "[RECEIVE] LOCATION_UPDATE FIXME");
-//                Location location = intent.getParcelableExtra("location");
+            switch (action) {
+                case Constants.ACTION.UPLOAD_DATA:
+                    uploadData();
+                    break;
+                case Constants.ACTION.QUIT_SERVICE:
+                    Log.i(TAG, "[RECEIVE] QUIT_SERVICE");
+                    uploadData();
+                    stopForeground(true);
+                    stopSelf();
+                    break;
+                case Constants.ACTION.LOCATION_UPDATE:
+//                    Location location = intent.getParcelableExtra("location");
+//                    Log.i(TAG, "[RECEIVE] LOCATION_UPDATE FIXME " + location);
+
 //                currentTrip.add(location);
-            } else {
-                Log.w(TAG, "UNKNOWN INTENT " + action);
+                    break;
+                default:
+                    Log.w(TAG, "UNKNOWN INTENT " + action);
+                    break;
             }
         } else {
             Log.e(TAG, "NULL INTENT");
@@ -205,20 +213,13 @@ public class LocationService extends Service {
 
         /* Get all trips. */
         DatabaseHelper db = DatabaseHelper.getInstance(this);
-        List<Trip> trips = db.getTrips();
-
-        String tripsText = trips.size() == 1 ? "trip" : "trips";
-        Log.v(TAG, "Uploading " + trips.size() + " " + tripsText);
-        Toast.makeText(this, "Uploading " + trips.size() + " " + tripsText, Toast.LENGTH_SHORT).show();
+        List<DatabaseHelper.DataObject> locations = db.getLocations();
 
         /*
          * Pass each trip to UploadAsyncTask, where it will be uploaded asynchronously to the API.
          * Pre- and post-hooks happen there, e.g. deleting the trip.
          */
-        for (Trip trip : trips) {
-            new UploadAsyncTask(this).execute(trip);
-        }
+        new UploadAsyncTask(this).execute(locations);
     }
-
 }
 

@@ -10,8 +10,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
@@ -29,8 +27,27 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.Observable;
 import java.util.Observer;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 public class MapsActivity extends FragmentActivity implements Observer, OnMapReadyCallback, LocationAssistant.Listener {
 
@@ -44,6 +61,41 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
     private MapsActivityReceiver mapsActivityReceiver;
     private MyReceiver myReceiver;
 //    private LocationService locationReceiver;
+
+//
+//    public static HttpClient getTestHttpClient() {
+//        try {
+//            SSLSocketFactory sf = new SSLSocketFactory(new TrustStrategy(){
+//                @Override
+//                public boolean isTrusted(X509Certificate[] chain,
+//                                         String authType) throws CertificateException {
+//                    return true;
+//                }
+//            }, new AllowAllHostnameVerifier());
+//
+//            SchemeRegistry registry = new SchemeRegistry();
+//            registry.register(new Scheme("https",8444, sf));
+//            ClientConnectionManager ccm = new ThreadSafeClientConnManager(registry);
+//            return new DefaultHttpClient(ccm);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return new DefaultHttpClient();
+//        }
+//    }
+//
+//
+//    final SchemeRegistry schemeRegistry = new SchemeRegistry();
+//schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+//schemeRegistry.register(new Scheme("https", createAdditionalCertsSSLSocketFactory(), 443));
+//
+//    // and then however you create your connection manager, I use ThreadSafeClientConnManager
+//    final HttpParams params = new BasicHttpParams();
+//...
+//    final ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(params,schemeRegistry);
+//
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -210,6 +262,15 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
 //        service.putExtra("location", location);
 //        startService(service);
 
+        DatabaseHelper db = DatabaseHelper.getInstance(this);
+
+        db.addLocation(location);
+
+//        if ( > -1) {
+//            Log.i(TAG, "ADDED LOCATION ");
+//        } else {
+//            Log.e(TAG, "FAILED ADDING LOCATION ");
+//        }
 
         updateMap(location);
         updateUI(location);
@@ -333,17 +394,17 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
          */
         if (isGooglePlayServicesAvailable(this)) {
             Log.v(TAG, "Google Play Services are available");
-            if (!isMyServiceRunning(LocationService.class)) {
-                Log.i(TAG, "startLocationService: [ACTION] " + Constants.ACTION.ENABLE_SERVICE);
-                Intent service = new Intent(MapsActivity.this, LocationService.class);
-                service.setAction(Constants.ACTION.ENABLE_SERVICE);
-                startService(service);
-            } else {
-                Log.i(TAG, "startLocationService: [ACTION] " + Constants.ACTION.PROPAGATE_CHANGES);
-                Intent service = new Intent(MapsActivity.this, LocationService.class);
-                service.setAction(Constants.ACTION.PROPAGATE_CHANGES);
-                startService(service);
-            }
+//            if (!isMyServiceRunning(LocationService.class)) {
+//                Log.i(TAG, "startLocationService: [ACTION] " + Constants.ACTION.ENABLE_SERVICE);
+//                Intent service = new Intent(MapsActivity.this, LocationService.class);
+//                service.setAction(Constants.ACTION.ENABLE_SERVICE);
+//                startService(service);
+//            } else {
+//                Log.i(TAG, "startLocationService: [ACTION] " + Constants.ACTION.PROPAGATE_CHANGES);
+//                Intent service = new Intent(MapsActivity.this, LocationService.class);
+//                service.setAction(Constants.ACTION.PROPAGATE_CHANGES);
+//                startService(service);
+//            }
         } else {
             Log.w(TAG, "Google Play Services not available");
         }
@@ -407,13 +468,24 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
 //        Snackbar.make(view, string, Snackbar.LENGTH_SHORT).show();
     }
 
-    private void showToast(Context context, String string) {
-        Toast.makeText(context, string, Toast.LENGTH_SHORT).show();
-    }
+//    private void showToast(Context context, String string) {
+//        Toast.makeText(context, string, Toast.LENGTH_SHORT).show();
+//    }
 
 
 
     private Button uploadButton;
+
+
+
+
+
+
+
+
+
+
+
 
 
 
