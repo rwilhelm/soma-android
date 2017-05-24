@@ -11,6 +11,7 @@ import android.content.IntentFilter;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
@@ -40,63 +41,60 @@ import java.util.Observer;
 public class MapsActivity extends FragmentActivity implements Observer, OnMapReadyCallback, LocationAssistant.Listener {
 
     private static final String TAG = "MapsActivity";
-    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 200;
-    private static GoogleMap mMap;
-    private LocationAssistant assistant;
-    private TextView tvLocation;
-    private static final int REQUEST_GOOGLE_PLAY_SERVICES = 1972;
-    private MapsActivityReceiver mapsActivityReceiver;
-    private MyReceiver myReceiver;
-    private List<Marker> myMarkers = new ArrayList<>();
 
-    Button uploadButton;
+    private static final int REQUEST_GOOGLE_PLAY_SERVICES = 1972;
+    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 200;
+
+    private LocationAssistant assistant;
+    private final List<Marker> myMarkers = new ArrayList<>();
+
+    private UploadScheduler uploadScheduler;
+    private UIReceiver uiReceiver;
+
+    private static GoogleMap map;
+
+    private TextView tvLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.v(TAG, "" +
-                "" +
-                "STARTUP :)" +
-                "" +
-                "");
+        Log.v(TAG, "onCreate");
 
         if (savedInstanceState == null) {
             startRegistrationService();
         }
 
+        /* Map */
         setContentView(R.layout.activity_maps);
-
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
-
         mapFragment.getMapAsync(this);
 
-        uploadButton = (Button) findViewById(R.id.upload);
-
-        Switch toggle = (Switch) findViewById(R.id.toggle);
-
+        /* Upload Button */
+        Button uploadButton = (Button) findViewById(R.id.upload);
         uploadButton.setOnClickListener(v -> {
-            View parentLayout = findViewById(android.R.id.content);
-            Intent uploadData = new Intent(MapsActivity.this, LocationService.class);
-            uploadData.setAction(Constants.ACTION.UPLOAD_DATA);
-            startService(uploadData);
-            showSnackBar(parentLayout, "Uploading data ...");
+            showSnackBar("Uploading data ...");
+            uploadData();
         });
 
-        toggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
+        /* On-off Switch */
+        Switch onOffSwitch = (Switch) findViewById(R.id.switch_on_off);
+        onOffSwitch.setChecked(isMyServiceRunning(LocationService.class));
+        onOffSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                Log.d(TAG, "start");
+                Log.d(TAG, "Starging Location Assistant");
                 assistant.start();
             } else {
-                Log.d(TAG, "stop");
+                Log.d(TAG, "Stopping Location Assistant");
                 assistant.stop();
             }
         });
 
+        /* Status Display */
         tvLocation = (TextView) findViewById(R.id.tvLocation);
         tvLocation.setText(getString(R.string.empty));
 
+        /* Location Assistant */
         assistant = new LocationAssistant(this, this, LocationAssistant.Accuracy.HIGH, Constants.UPDATE_INTERVAL, false);
         assistant.setVerbose(false);
 
@@ -120,10 +118,8 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        Intent service = new Intent(MapsActivity.this, LocationService.class);
-        service.setAction(Constants.ACTION.ASSISTANT_PERMISSION_UPDATED);
-        startService(service);
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        updateAssistant();
     }
 
     @Override
@@ -182,7 +178,7 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
     public void onNewLocationAvailable(Location location) {
         Log.d(TAG, "onNewLocationAvailable " + location);
         if (location == null) return;
-        sendBroadcast(new Intent(Constants.ACTION.LOCATION_UPDATE).putExtra("location", location));
+        sendBroadcast(new Intent(Constants.ACTION.UPDATE_NOTIFICATION).putExtra("location", location));
         DatabaseHelper db = DatabaseHelper.getInstance(this);
         db.addLocation(location);
         updateMap(location);
@@ -200,25 +196,30 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
         tvLocation.setText(getString(R.string.error));
     }
 
-    public class MapsActivityReceiver extends BroadcastReceiver {
 
-        private static final String TAG = "MapsActivityReceiver";
+    private void uploadData() {
+        Intent uploadData = new Intent(MapsActivity.this, LocationService.class);
+        uploadData.setAction(Constants.ACTION.UPLOAD_DATA);
+        startService(uploadData);
+    }
 
+    private void updateAssistant() {
+        Intent service = new Intent(MapsActivity.this, LocationService.class);
+        service.setAction(Constants.ACTION.ASSISTANT_PERMISSION_UPDATED);
+        startService(service);
+    }
+
+    public class UIReceiver extends BroadcastReceiver {
+        private static final String TAG = "UIReceiver";
         @Override
         public void onReceive(Context context, Intent intent) {
-
             String action = intent.getAction();
-
             switch (action) {
-
                 case Constants.ACTION.ASSISTANT_PERMISSION_UPDATED:
                     Log.v(TAG, "ASSISTANT_PERMISSION_UPDATED");
-                    tvLocation.setOnClickListener(null); // TODO Why is that here?
+                    /* Update the location status text view and make it unclickable. */
+                    tvLocation.setOnClickListener(null);
                     break;
-
-                default:
-                    Log.w(TAG, "UNKNOWN INTENT" + action);
-
             }
         }
     }
@@ -234,24 +235,24 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
     private void registerBroadcastReceiver() {
         Log.v(TAG, "Register broadcast receivers");
 
-        if (myReceiver == null) myReceiver = new MyReceiver();
-        registerReceiver(myReceiver, new IntentFilter(Intent.ACTION_BOOT_COMPLETED));
-        registerReceiver(myReceiver, new IntentFilter(Intent.ACTION_SHUTDOWN));
-        registerReceiver(myReceiver, new IntentFilter(Intent.ACTION_BUG_REPORT));
-        registerReceiver(myReceiver, new IntentFilter(Constants.ACTION.UPLOAD_DATA));
-        registerReceiver(myReceiver, new IntentFilter(Constants.ACTION.LOCATION_UPDATE));
-        registerReceiver(myReceiver, new IntentFilter(Constants.ACTION.ON_CONNECTION_FAILED));
-        registerReceiver(myReceiver, new IntentFilter(Constants.ACTION.ALL_UPLOADS_SUCCESSFUL));
+        if (uploadScheduler == null) uploadScheduler = new UploadScheduler();
+        registerReceiver(uploadScheduler, new IntentFilter(Intent.ACTION_BOOT_COMPLETED));
+        registerReceiver(uploadScheduler, new IntentFilter(Constants.ACTION.UPLOAD_DATA));
+        registerReceiver(uploadScheduler, new IntentFilter(Constants.ACTION.LOCATION_UPDATE));
+        registerReceiver(uploadScheduler, new IntentFilter(Constants.ACTION.CONNECTION_FAILED));
 
-        if (mapsActivityReceiver == null) mapsActivityReceiver = new MapsActivityReceiver();
-        registerReceiver(mapsActivityReceiver, new IntentFilter(Constants.ACTION.ASSISTANT_PERMISSION_UPDATED));
+        registerReceiver(uploadScheduler, new IntentFilter(Constants.ACTION.LOCATION_UPDATED));
+        registerReceiver(uploadScheduler, new IntentFilter(Constants.ACTION.UPLOAD_SUCCESS));
+
+        if (uiReceiver == null) uiReceiver = new UIReceiver();
+        registerReceiver(uiReceiver, new IntentFilter(Constants.ACTION.ASSISTANT_PERMISSION_UPDATED));
     }
 
     /* Unregister broadcast receivers */
     private void unregisterBroadcastReceiver() {
         Log.v(TAG, "Unregister broadcast receivers");
-        if (mapsActivityReceiver != null) unregisterReceiver(mapsActivityReceiver);
-        if (myReceiver != null) unregisterReceiver(myReceiver);
+        if (uiReceiver != null) unregisterReceiver(uiReceiver);
+        if (uploadScheduler != null) unregisterReceiver(uploadScheduler);
     }
 
     private void startRegistrationService() {
@@ -280,10 +281,10 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
     @Override
     public void onMapReady(GoogleMap googleMap) {
         Log.v(TAG, "onMapReady");
-        mMap = googleMap;
+        map = googleMap;
     }
 
-    /* Check if service is running*/
+    /* Check if a service is running*/
     private boolean isMyServiceRunning(Class<?> serviceClass) {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
@@ -294,31 +295,36 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
         return false;
     }
 
-    public void updateMap(Location location) {
+    private void updateMap(Location location) {
         LatLng latest = new LatLng(location.getLatitude(), location.getLongitude());
+        drawPolyline();
+        removeOldMarkers();
+        addMarkerToMap(latest);
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom(latest, 14));
+    }
+
+    private void addMarkerToMap(LatLng latest) {
+        Marker marker = map.addMarker(new MarkerOptions().position(latest));
+        myMarkers.add(marker);
+    }
+
+    private void removeOldMarkers() {
+        myMarkers.forEach(Marker::remove);
+    }
+
+    private void drawPolyline() {
+        map.clear();
         DatabaseHelper db = DatabaseHelper.getInstance(this);
-
-        mMap.clear();
-
-        Polyline line = mMap.addPolyline(new PolylineOptions()
+        Polyline line = map.addPolyline(new PolylineOptions()
                 .width(5)
                 .color(Color.RED));
 
         List<LatLng> latLngs = new ArrayList<>();
         db.getLocations().forEach(l -> latLngs.add(l.getLatLng()));
         line.setPoints(latLngs);
-
-        for (Marker m: myMarkers) {
-            m.remove();
-        }
-
-        Marker marker = mMap.addMarker(new MarkerOptions().position(latest).title("" + location.getTime()));
-
-        myMarkers.add(marker);
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latest, 14));
     }
 
-    public void updateUI(Location location) {
+    private void updateUI(Location location) {
         tvLocation.setOnClickListener(null);
         tvLocation.setText(location.getLongitude() + "\n" + location.getLatitude());
         tvLocation.setAlpha(1.0f);
@@ -339,11 +345,12 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
         return true;
     }
 
-    private void showSnackBar(View view, String string) {
+    private void showSnackBar(String string) {
+        View view = findViewById(android.R.id.content);
         Snackbar.make(view, string, Snackbar.LENGTH_SHORT).show();
     }
-//
-//    private void showToast(Context context, String string) {
-//        Toast.makeText(context, string, Toast.LENGTH_SHORT).show();
-//    }
+
+    private void showToast(Context context, String string) {
+        Toast.makeText(context, string, Toast.LENGTH_SHORT).show();
+    }
 }

@@ -90,7 +90,7 @@
             android:exported="false" />
 
         <receiver
-            android:name=".MyReceiver"
+            android:name=".UploadScheduler"
             android:enabled="true"
             android:exported="true">
             <intent-filter>

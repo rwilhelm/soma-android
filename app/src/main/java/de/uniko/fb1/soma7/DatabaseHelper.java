@@ -112,8 +112,8 @@ class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     long addLocation(Location location) {
-
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
         long id;
@@ -143,14 +143,14 @@ class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     static class DataObject {
-        private int id;
-        private float altitude;
-        private float accuracy;
-        private float latitude;
-        private float longitude;
-        private float bearing;
-        private long timestamp;
-        private float speed;
+        private final int id;
+        private final float altitude;
+        private final float accuracy;
+        private final float latitude;
+        private final float longitude;
+        private final float bearing;
+        private final long timestamp;
+        private final float speed;
 
         public DataObject(int id, float accuracy, float altitude, float bearing, float latitude, float longitude, long timestamp, float speed) {
             this.id = id;
@@ -184,7 +184,7 @@ class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(LOCATIONS_SELECT_QUERY, null);
 
-        List<DataObject> locations = new ArrayList<DataObject>();
+        List<DataObject> locations = new ArrayList<>();
 
         try {
             if (cursor.moveToFirst()) {

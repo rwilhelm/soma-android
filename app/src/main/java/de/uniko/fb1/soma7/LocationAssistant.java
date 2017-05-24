@@ -176,7 +176,7 @@ public class LocationAssistant
     private final int REQUEST_LOCATION_PERMISSION = 1;
 
     // Parameters
-    protected final Context context;
+    private final Context context;
     private Activity activity;
     private Listener listener;
     private final int priority;
@@ -191,7 +191,7 @@ public class LocationAssistant
     private boolean locationStatusOk;
     private boolean changeSettings;
     private boolean updatesRequested;
-    protected Location bestLocation;
+    Location bestLocation;
     private GoogleApiClient googleApiClient;
     private LocationRequest locationRequest;
     private Status locationStatus;
@@ -440,7 +440,7 @@ public class LocationAssistant
         }
     }
 
-    protected void acquireLocation() {
+    private void acquireLocation() {
         if (!permissionGranted) checkLocationPermission();
         if (!permissionGranted) {
             if (numTimesPermissionDeclined >= 2) return;
@@ -471,12 +471,7 @@ public class LocationAssistant
         if (!updatesRequested) {
             requestLocationUpdates();
             // Check back in a few
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    acquireLocation();
-                }
-            }, 10000);
+            new Handler().postDelayed(this::acquireLocation, 10000);
             return;
         }
 
@@ -486,7 +481,7 @@ public class LocationAssistant
         }
     }
 
-    protected void checkInitialLocation() {
+    private void checkInitialLocation() {
         if (!googleApiClient.isConnected() || !permissionGranted || !locationRequested || !locationStatusOk) return;
         try {
             Location location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
@@ -726,7 +721,7 @@ public class LocationAssistant
                     connectionResult.getErrorMessage());
     }
 
-    final ResultCallback<LocationSettingsResult> onLocationSettingsReceived = new ResultCallback<LocationSettingsResult>() {
+    private final ResultCallback<LocationSettingsResult> onLocationSettingsReceived = new ResultCallback<LocationSettingsResult>() {
         @Override
         public void onResult(@NonNull LocationSettingsResult result) {
             locationRequested = true;

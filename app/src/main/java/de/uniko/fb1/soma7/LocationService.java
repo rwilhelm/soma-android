@@ -3,7 +3,6 @@ package de.uniko.fb1.soma7;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -23,8 +22,6 @@ import java.util.List;
 public class LocationService extends Service {
 
     private static final String TAG = "LocationService";
-
-    private BroadcastReceiver locationReceiver;
 
     /**
      * Show in notification bar
@@ -49,7 +46,7 @@ public class LocationService extends Service {
                 new NotificationCompat.Builder(this)
                         .setContentTitle(Constants.APP_NAME)
                         .setContentText(contentText)
-                        .setContentInfo("Data: " + dataCount)
+                        .setSubText("Data: " + dataCount)
                         .setSmallIcon(android.R.drawable.ic_menu_mylocation)
                         .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
                         .setContentIntent(pendingIntent)
@@ -59,7 +56,7 @@ public class LocationService extends Service {
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         mNotificationManager.notify(Constants.NOTIFICATION_ID.FOREGROUND_SERVICE, notification.build());
-        
+
         Log.d(TAG, "updateNotification: dataCount: " + dataCount + ", notificationIntent: " + contentText);
         return notification;
     }
@@ -69,48 +66,45 @@ public class LocationService extends Service {
         super.onCreate();
         Log.v(TAG, "onCreate");
         startForeground(Constants.NOTIFICATION_ID.FOREGROUND_SERVICE, updateNotification().build());
-        sendBroadcast(new Intent(Constants.ACTION.START_SERVICE));
+        sendBroadcast(new Intent(Constants.ACTION.START_ASSISTANT));
     }
 
     @Override
     /* Actions, e.g. commands to this service, are passed as Intent carrying an action constant. */
     public int onStartCommand(Intent intent, int flags, int startId) {
-
         if (intent != null) {
-
             String action = intent.getAction();
-            Log.i(TAG, "[RECEIVE] " + action);
-
+            Log.i(TAG, "onStartCommand: " + action);
             switch (action) {
+                case Constants.ACTION.START_ASSISTANT:
+                    quitService();
+                    break;
+                case Constants.ACTION.STOP_ASSISTANT:
+                    quitService();
+                    break;
                 case Constants.ACTION.UPLOAD_DATA:
                     uploadData();
                     break;
-                case Constants.ACTION.QUIT_SERVICE:
-                    Log.i(TAG, "[RECEIVE] QUIT_SERVICE");
-                    uploadData();
-                    stopForeground(true); // TODO What is this?
-                    stopSelf();
-                    break;
-                case Constants.ACTION.LOCATION_UPDATE:
+                case Constants.ACTION.UPDATE_NOTIFICATION:
                     updateNotification();
-                    break;
-                default:
-                    Log.w(TAG, "UNKNOWN INTENT " + action);
                     break;
             }
         } else {
             Log.e(TAG, "NULL INTENT");
         }
-
         return START_STICKY;
     }
 
+    private void quitService() {
+        Log.i(TAG, "quitService");
+        stopForeground(true); // TODO What is this?
+        stopSelf();
+    }
 
     @Override
     public void onDestroy() {
         Log.w(TAG, "onDestroy");
-        sendBroadcast(new Intent(Constants.ACTION.STOP_SERVICE));
-        this.unregisterReceiver(this.locationReceiver);
+        sendBroadcast(new Intent(Constants.ACTION.STOP_ASSISTANT));
         super.onDestroy(); // should be called last
     }
 
@@ -126,15 +120,10 @@ public class LocationService extends Service {
      */
     private void uploadData() {
         Log.v(TAG, "uploadData");
-
-        /* Get all trips. */
         DatabaseHelper db = DatabaseHelper.getInstance(this);
         List<DatabaseHelper.DataObject> locations = db.getLocations();
 
-        /*
-         * Pass each trip to UploadAsyncTask, where it will be uploaded asynchronously to the API.
-         * Pre- and post-hooks happen there, e.g. deleting the trip.
-         */
+        // noinspection unchecked
         new UploadAsyncTask(this).execute(locations);
     }
 }

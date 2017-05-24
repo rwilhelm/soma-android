@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name" translatable="false">SoMA</string>
-    <string name="title_activity_maps">Map</string>
-    <string name="empty">emptystring</string>
+    <string name="title_activity_maps">SoMA Location Tracker</string>
+    <string name="empty" />
     <string name="permissionExplanation">Hello! Please click the button. :)</string>
     <string name="ok">Okay</string>
     <string name="cancel">Nope</string>
@@ -10,9 +10,8 @@
     <string name="switchOnLocationLong">Switch on location (long)</string>
     <string name="mockLocationMessage">Location simulation detected</string>
     <string name="error">Oops, something went wrong.</string>
-    <string name="url" translatable="false">https://soma.uni-koblenz.de/api/</string>
-    <string name="msg_api_client_failure">GOOGLE_API_CONNECTION_FAILURE</string>
-    <string name="msg_api_client_connected">connected</string>
+    <string name="upload">Upload</string>
+    <string name="upload_url">https://soma.uni-koblenz.de:5000/upload</string>
 
     <!--&lt;!&ndash;<string name="google_maps_api_key">AIzaSyDhWLYmSmd6QQ5gArYrHwatOu48NK5w-N8</string>&ndash;&gt;-->
 

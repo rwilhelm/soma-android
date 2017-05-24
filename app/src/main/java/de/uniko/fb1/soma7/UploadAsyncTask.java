@@ -27,17 +27,15 @@ class UploadAsyncTask extends AsyncTask<List<DatabaseHelper.DataObject>, Integer
     }
 
     @Override
+    @SafeVarargs
     protected final String doInBackground(List<DatabaseHelper.DataObject>... params) {
 
         // TODO Read this ...
         // http://stackoverflow.com/a/9963705/220472
-
-        Log.d(TAG, "Class of params" + params.getClass());
-        Log.d(TAG, "Length of params" + params.length);
-        Log.d(TAG, "Params " + params);
+        // http://stackoverflow.com/a/28120209/220472
 
         UploadHelperVolley uploader = new UploadHelperVolley();
-        uploader.uploadAllLocations(context, params, new VolleyCallback(){
+        uploader.uploadLocations(context, params, new VolleyCallback(){
             @Override
             public void onSuccessResponse(int httpStatusCode) {
                 Log.i(TAG, "UPLOAD SUCCESS" + httpStatusCode);
@@ -49,16 +47,7 @@ class UploadAsyncTask extends AsyncTask<List<DatabaseHelper.DataObject>, Integer
             }
         });
 
-//        for (final Location location : params) {
-//            Log.i(TAG, "PARAMS LOCATION " + locations.toString());
-//        }
-
         return null;
-    }
-
-    @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
     }
 
     @Override

@@ -1,5 +1,6 @@
 package de.uniko.fb1.soma7;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.provider.Settings;
 import android.util.Log;
@@ -52,9 +53,9 @@ class UploadHelperVolley {
     private static final String TAG = "UploadHelperVolley";
 
     private static class UploadObject {
-        private String uuid;
-        private String device_id;
-        private List<DatabaseHelper.DataObject> locationData;
+        private final String uuid;
+        private final String device_id;
+        private final List<DatabaseHelper.DataObject> locationData;
 
         UploadObject(String device_id, List<DatabaseHelper.DataObject> locationData) {
             this.uuid = UUID.randomUUID().toString();
@@ -76,15 +77,16 @@ class UploadHelperVolley {
         }
     }
 
-    void uploadAllLocations(final Context context, final List<DatabaseHelper.DataObject>[] locations, final VolleyCallback callback) {
-        Log.w(TAG, "uploadAllLocations: Uploading " + locations.length + " locations" );
+    void uploadLocations(final Context context, final List<DatabaseHelper.DataObject>[] locations, final VolleyCallback callback) {
+        Log.w(TAG, "uploadLocations: Uploading " + locations.length + " locations" );
 
         // TODO iterate over locations instead (which are lists of locations actually)
         // http://blog.applegrew.com/2015/04/using-pinned-self-signed-ssl-certificate-with-android-volley/
+        // http://stackoverflow.com/a/28120209/220472
 
         DatabaseHelper db = DatabaseHelper.getInstance(context);
-        String url = "https://soma.uni-koblenz.de:5000/upload";
-        String clientId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+        String url = context.getString(R.string.upload_url);
+        @SuppressLint("HardwareIds") String clientId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
         UploadObject u = new UploadObject(clientId, locations[0]);
 
         Log.i(TAG, "Request Body: " + u.getRequestBody());
@@ -105,12 +107,15 @@ class UploadHelperVolley {
 
         final RequestQueue queue = Volley.newRequestQueue(context.getApplicationContext(), hurlStack);
 
-        final StringRequest uploadRequest = new StringRequest(Request.Method.POST, url, response -> {
-            Log.w(TAG, "UPLOAD SUCCESS " + response);
-        }, error -> {
-            Log.w(TAG, "UPLOAD FAILURE " + error.getMessage());
-            queue.stop(); // TODO
-        }) {
+        final StringRequest uploadRequest = new StringRequest(Request.Method.POST, url,
+                response -> {
+                    Log.w(TAG, "UPLOAD SUCCESS 1 response: " + response);
+                },
+                error -> {
+                    Log.w(TAG, "UPLOAD FAILURE " + error.getMessage());
+                    queue.stop(); // TODO
+                }) {
+
             @Override
             public String getBodyContentType() {
                 return "application/json; charset=utf-8";
@@ -120,9 +125,9 @@ class UploadHelperVolley {
             protected Response<String> parseNetworkResponse(NetworkResponse response) {
                 int httpStatusCode = response.statusCode;
                 if (httpStatusCode == 200) {
-                    callback.onSuccessResponse(httpStatusCode);
+                    callback.onSuccessResponse(httpStatusCode); // TODO See VolleyCallback.java
                 } else if (httpStatusCode == 400) {
-                    callback.onFailureResponse(httpStatusCode);
+                    callback.onFailureResponse(httpStatusCode); // TODO See VolleyCallback.java
                 } else {
                     callback.onFailureResponse(httpStatusCode);
                 }
@@ -144,12 +149,12 @@ class UploadHelperVolley {
             }
         };
 
+        /* ... */
+
         RequestQueue.RequestFinishedListener listener = request -> {
             if (request.equals(uploadRequest)) {
                 Log.i(TAG, "onRequestFinished: " + u.getLocationIds());
-                for (Integer id: u.getLocationIds()) {
-                    db.deleteLocation(id);
-                }
+                u.getLocationIds().forEach(db::deleteLocation);
             }
         };
 
@@ -162,14 +167,14 @@ class UploadHelperVolley {
         queue.add(uploadRequest);
     }
 
-    // Let's assume your server app is hosting inside a server machine
-    // which has a server certificate in which "Issued to" is "localhost",for example.
-    // Then, inside verify method you can verify "localhost".
-    // If not, you can temporarily return true
+    // Let's assume your server app is hosting inside a server machine which has a server
+    // certificate in which "Issued to" is "localhost", for example. Then, inside verify
+    // method you can verify "localhost". If not, you can temporarily return true.
     private HostnameVerifier getHostnameVerifier() {
         return (hostname, session) -> {
             HostnameVerifier hv = HttpsURLConnection.getDefaultHostnameVerifier();
-//                return hv.verify("localhost", session);
+            // return true;
+            // return hv.verify("localhost", session);
             return hv.verify("soma.uni-koblenz.de", session);
         };
     }

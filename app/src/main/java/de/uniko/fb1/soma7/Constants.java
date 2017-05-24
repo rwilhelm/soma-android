@@ -21,20 +21,25 @@ final class Constants {
 
 
     public interface ACTION {
-        String ALL_UPLOADS_SUCCESSFUL            = "de.uniko.fb1.soma.action.ALL_UPLOADS_SUCCESSFUL";
         String ASSISTANT_PERMISSION_UPDATED      = "de.uniko.fb1.soma.action.ASSISTANT_PERMISSION_UPDATED";
-        String DB_LOCATION_ADDED                 = "de.uniko.fb1.soma.action.DB_LOCATION_ADDED";
-        String DB_TRIP_ADDED                     = "de.uniko.fb1.soma.action.DB_TRIP_ADDED";
-        String ENABLE_SERVICE                    = "de.uniko.fb1.soma.action.ENABLE_SERVICE";
-        String LOCATION_UPDATE                   = "de.uniko.fb1.soma.action.LOCATION_UPDATE";
-        String ON_CONNECTION_FAILED              = "de.uniko.fb1.soma.action.ON_CONNECTION_FAILED";
-        String PROPAGATE_CHANGES                 = "de.uniko.fb1.soma.action.PROPAGATE_CHANGES";
-        String QUIT_SERVICE                      = "de.uniko.fb1.soma.action.QUIT_SERVICE";
-        String RESUME_FOREGROUND_ACTION          = "de.uniko.fb1.soma.action.resumeforeground";
+        String RESUME_FOREGROUND_ACTION          = "de.uniko.fb1.soma.action.RESUME_FOREGROUND_ACTION";
         String SCHEDULED_UPLOAD                  = "de.uniko.fb1.soma.action.SCHEDULED_UPLOAD";
-        String START_SERVICE                     = "de.uniko.fb1.soma.action.START_SERVICE";
-        String STOP_SERVICE                      = "de.uniko.fb1.soma.action.STOP_SERVICE";
+
+        /* -> LocationService */
+        String START_ASSISTANT                   = "de.uniko.fb1.soma.action.START_ASSISTANT";
+        String STOP_ASSISTANT                    = "de.uniko.fb1.soma.action.STOP_ASSISTANT";
+        String UPDATE_NOTIFICATION               = "de.uniko.fb1.soma.action.UPDATE_NOTIFICATION";
         String UPLOAD_DATA                       = "de.uniko.fb1.soma.action.UPLOAD_DATA";
+
+        String LOCATION_UPDATE                   = "de.uniko.fb1.soma.action.LOCATION_UPDATE";
+
+        String LOCATION_UPDATED = "de.uniko.fb1.soma.action.LOCATION_UPDATE";
+        String UPLOAD_SUCCESS = "de.uniko.fb1.soma.action.UPLOAD_SUCCESS";
+        String CONNECTION_FAILED              = "de.uniko.fb1.soma.action.CONNECTION_FAILED";
+
+    }
+
+    public interface EVENT {
     }
 
     public interface NOTIFICATION_ID {
