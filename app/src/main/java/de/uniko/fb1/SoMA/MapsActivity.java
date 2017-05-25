@@ -1,4 +1,4 @@
-package de.uniko.fb1.soma7;
+package de.uniko.fb1.SoMA;
 
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -178,7 +178,7 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
     public void onNewLocationAvailable(Location location) {
         Log.d(TAG, "onNewLocationAvailable " + location);
         if (location == null) return;
-        sendBroadcast(new Intent(Constants.ACTION.UPDATE_NOTIFICATION).putExtra("location", location));
+        sendBroadcast(new Intent(Constants.ACTION.LOCATION_UPDATED).putExtra("location", location));
         DatabaseHelper db = DatabaseHelper.getInstance(this);
         db.addLocation(location);
         updateMap(location);
@@ -199,7 +199,7 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
 
     private void uploadData() {
         Intent uploadData = new Intent(MapsActivity.this, LocationService.class);
-        uploadData.setAction(Constants.ACTION.UPLOAD_DATA);
+        uploadData.setAction(Constants.ACTION.SCHEDULED_UPLOAD);
         startService(uploadData);
     }
 
@@ -237,8 +237,7 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
 
         if (uploadScheduler == null) uploadScheduler = new UploadScheduler();
         registerReceiver(uploadScheduler, new IntentFilter(Intent.ACTION_BOOT_COMPLETED));
-        registerReceiver(uploadScheduler, new IntentFilter(Constants.ACTION.UPLOAD_DATA));
-        registerReceiver(uploadScheduler, new IntentFilter(Constants.ACTION.LOCATION_UPDATE));
+        registerReceiver(uploadScheduler, new IntentFilter(Constants.ACTION.SCHEDULED_UPLOAD));
         registerReceiver(uploadScheduler, new IntentFilter(Constants.ACTION.CONNECTION_FAILED));
 
         registerReceiver(uploadScheduler, new IntentFilter(Constants.ACTION.LOCATION_UPDATED));

@@ -1,4 +1,4 @@
-package de.uniko.fb1.soma7;
+package de.uniko.fb1.SoMA;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -13,7 +13,7 @@ public class UploadScheduler extends BroadcastReceiver {
     private static final String TAG = "UploadScheduler";
 
     public static final String BOOT_COMPLETED = Intent.ACTION_BOOT_COMPLETED;
-    public static final String UPLOAD_DATA = Constants.ACTION.UPLOAD_DATA;
+    public static final String SCHEDULED_UPLOAD = Constants.ACTION.SCHEDULED_UPLOAD;
     public static final String CONNECTION_FAILED = Constants.ACTION.CONNECTION_FAILED;
     public static final String UPLOAD_SUCCESS = Constants.ACTION.UPLOAD_SUCCESS;
 
@@ -31,7 +31,7 @@ public class UploadScheduler extends BroadcastReceiver {
             startLocationService(context);
             setInitialAlarm(context);
 
-        } else if (intent.getAction().equals(UPLOAD_DATA)) {
+        } else if (intent.getAction().equals(SCHEDULED_UPLOAD)) {
             Log.i(TAG, "UPLOAD_DATA");
 
             uploadData(context);
@@ -55,11 +55,12 @@ public class UploadScheduler extends BroadcastReceiver {
     /* Send an upload intent to our location service */
     private void uploadData(Context context) {
         Intent uploadIntent = new Intent(context, LocationService.class);
-        uploadIntent.setAction(Constants.ACTION.UPLOAD_DATA);
+        uploadIntent.setAction(Constants.ACTION.SCHEDULED_UPLOAD);
         context.startService(uploadIntent);
     }
 
     /* Setup the first alarm to schedule uploading */
+    // TODO return time when alarm will set off
     private void setInitialAlarm(Context context) {
         AlarmManager alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent i = new Intent(context, LocationService.class);

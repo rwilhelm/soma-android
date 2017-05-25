@@ -1,4 +1,4 @@
-package de.uniko.fb1.soma7;
+package de.uniko.fb1.SoMA;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -74,20 +74,25 @@ public class LocationService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
             String action = intent.getAction();
-            Log.i(TAG, "onStartCommand: " + action);
-            switch (action) {
-                case Constants.ACTION.START_ASSISTANT:
-                    quitService();
-                    break;
-                case Constants.ACTION.STOP_ASSISTANT:
-                    quitService();
-                    break;
-                case Constants.ACTION.UPLOAD_DATA:
-                    uploadData();
-                    break;
-                case Constants.ACTION.UPDATE_NOTIFICATION:
-                    updateNotification();
-                    break;
+            Log.i(TAG, "onStartCommand: intent:" + intent + ", action: " + action);
+            if (action != null) {
+                Log.i(TAG, "onStartCommand: " + action);
+                switch (action) {
+                    case Constants.ACTION.START_ASSISTANT:
+                        startLocationService();
+                        break;
+                    case Constants.ACTION.STOP_ASSISTANT:
+                        stopLocationService();
+                        break;
+                    case Constants.ACTION.SCHEDULED_UPLOAD:
+                        uploadData();
+                        break;
+                    case Constants.ACTION.LOCATION_UPDATED:
+                        updateNotification();
+                        break;
+                }
+            } else {
+                Log.e(TAG, "NULL ACTION");
             }
         } else {
             Log.e(TAG, "NULL INTENT");
@@ -95,8 +100,12 @@ public class LocationService extends Service {
         return START_STICKY;
     }
 
-    private void quitService() {
-        Log.i(TAG, "quitService");
+    private void startLocationService() {
+        Log.i(TAG, "startLocationService");
+    }
+
+    private void stopLocationService() {
+        Log.i(TAG, "stopLocationService");
         stopForeground(true); // TODO What is this?
         stopSelf();
     }

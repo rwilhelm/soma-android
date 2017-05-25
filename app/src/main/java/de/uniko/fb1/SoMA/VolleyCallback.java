@@ -1,4 +1,4 @@
-package de.uniko.fb1.soma7;
+package de.uniko.fb1.SoMA;
 
 /**
  * Created by asdf on 2/11/17.

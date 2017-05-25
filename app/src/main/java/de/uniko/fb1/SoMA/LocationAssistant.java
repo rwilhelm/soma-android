@@ -14,7 +14,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.uniko.fb1.soma7;
+package de.uniko.fb1.SoMA;
 
 import android.Manifest;
 import android.app.Activity;

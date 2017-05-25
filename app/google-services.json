@@ -8,24 +8,28 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:288893270266:android:38c90d3316c472a2",
+        "mobilesdk_app_id": "1:288893270266:android:eedc65e92f05e4c6",
         "android_client_info": {
-          "package_name": "de.uniko.fb1.soma7"
+          "package_name": "de.uniko.fb1.SoMA"
         }
       },
       "oauth_client": [
         {
-          "client_id": "288893270266-8ei5dd12rohrgnc2ej3kc3hp2phfh8hh.apps.googleusercontent.com",
+          "client_id": "288893270266-q9auf404cog88suf8eoq0vbpdiff3kmi.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "de.uniko.fb1.soma7",
+            "package_name": "de.uniko.fb1.SoMA",
             "certificate_hash": "137517b568bc466423e1bf73067f4acfb2d276dd"
           }
+        },
+        {
+          "client_id": "288893270266-figtcu6747dsnovhpct4866i8og7g0en.apps.googleusercontent.com",
+          "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyB3S5cGtUOHZ78MQqnl1lvsk0UzPI4hIRY"
+          "current_key": "AIzaSyDTsScJNZwDfu3LCIcDiTQTsoirDHjUimA"
         }
       ],
       "services": {
@@ -34,7 +38,12 @@
         },
         "appinvite_service": {
           "status": 2,
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "288893270266-figtcu6747dsnovhpct4866i8og7g0en.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         },
         "ads_service": {
           "status": 2

@@ -12,7 +12,7 @@ android {
     compileSdkVersion 25
     buildToolsVersion "25.0.3"
     defaultConfig {
-        applicationId "de.uniko.fb1.soma7"
+        applicationId "de.uniko.fb1.SoMA"
         minSdkVersion 17
         targetSdkVersion 25
         versionCode 1
@@ -22,6 +22,7 @@ android {
         jackOptions {
             enabled true
         }
+        resValue "string", "google_maps_key", (project.findProperty("GOOGLE_MAPS_API_KEY") ?: "")
     }
     buildTypes {
         release {

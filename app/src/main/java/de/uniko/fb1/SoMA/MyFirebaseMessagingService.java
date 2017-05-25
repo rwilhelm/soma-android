@@ -1,4 +1,4 @@
-package de.uniko.fb1.soma7;
+package de.uniko.fb1.SoMA;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;

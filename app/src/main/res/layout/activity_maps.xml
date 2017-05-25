@@ -16,7 +16,7 @@
         map:layout_constraintLeft_toLeftOf="parent"
         map:layout_constraintRight_toRightOf="parent"
         map:layout_constraintTop_toTopOf="parent"
-        tools:context="de.uniko.fb1.soma7.MapsActivity"
+        tools:context="de.uniko.fb1.SoMA.MapsActivity"
         tools:layout_constraintBottom_creator="1"
         tools:layout_constraintLeft_creator="1"
         tools:layout_constraintRight_creator="1"

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="de.uniko.fb1.soma7">
+    package="de.uniko.fb1.SoMA">
 
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
@@ -36,13 +36,27 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
+        <!--
+         from: https://developers.google.com/maps/documentation/android-api/signup#use-key
+         As shown above, com.google.android.geo.API_KEY is the recommended metadata name for the
+         API key. A key with this name can be used to authenticate to multiple Google Maps-based
+         APIs on the Android platform, including the Google Maps Android API. For backwards
+         compatibility, the API also supports the name com.google.android.maps.v2.API_KEY. This
+         legacy name allows authentication to the Android Maps API v2 only. An application can
+         specify only one of the API key metadata names. If both are specified, the API throws an
+         exception.
+        -->
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
-         <!--<meta-data-->
+        <!--<meta-data-->
              <!--android:name="com.google.android.maps.v2.API_KEY"-->
              <!--android:value="@string/google_maps_key" />-->
+
+
+
 
         <!--
              Set custom default icon. This is used when no icon is set for incoming notification messages.
@@ -60,7 +74,7 @@
             android:resource="@color/colorAccent" />
 
         <activity
-            android:name=".MapsActivity"
+            android:name="de.uniko.fb1.SoMA.MapsActivity"
             android:label="@string/title_activity_maps">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -68,7 +82,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".MyFirebaseMessagingService">
+        <service android:name="de.uniko.fb1.SoMA.MyFirebaseMessagingService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
@@ -78,7 +92,7 @@
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/colorAccent" />
 
-        <service android:name=".MyFirebaseInstanceIDService" android:exported="true">
+        <service android:name="de.uniko.fb1.SoMA.MyFirebaseInstanceIDService" android:exported="true">
 
             <intent-filter>
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
@@ -86,18 +100,16 @@
         </service>
 
         <service
-            android:name=".LocationService"
+            android:name="de.uniko.fb1.SoMA.LocationService"
             android:exported="false" />
 
         <receiver
-            android:name=".UploadScheduler"
+            android:name="de.uniko.fb1.SoMA.UploadScheduler"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.ACTION_SHUTDOWN" />
-                <action android:name="android.intent.action.BUG_REPORT" />
-                <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
                 <action android:name="de.uniko.fb1.soma.action.SCHEDULED_UPLOAD" />
                 <action android:name="de.uniko.fb1.soma.action.ON_CONNECTION_FAILED" />
             </intent-filter>
