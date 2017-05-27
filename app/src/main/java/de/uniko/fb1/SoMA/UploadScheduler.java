@@ -30,21 +30,15 @@ public class UploadScheduler extends BroadcastReceiver {
 
         if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
             Log.i(TAG, "ACTION_BOOT_COMPLETED");
-
             startLocationService(context);
             setInitialAlarm(context);
-
         } else if (intent.getAction().equals(Constants.ACTION.SET_INITIAL_ALARM)) {
             Log.i(TAG, "SET_INITIAL_ALARM");
-
             setInitialAlarm(context);
-
         } else if (intent.getAction().equals(Constants.ACTION.SCHEDULED_UPLOAD)) {
             Log.i(TAG, "UPLOAD_DATA");
-
             uploadData(context);
             setNextAlarm(context);
-
         } else {
             Log.wtf(TAG, "UnsupportedOperationException",
                     new UnsupportedOperationException("Not yet implemented: " + intent.getAction()));
@@ -68,35 +62,50 @@ public class UploadScheduler extends BroadcastReceiver {
     /* Setup the first alarm to schedule uploading */
     // TODO return time when alarm will set off
     private void setInitialAlarm(Context context) {
-        AlarmManager alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        Intent i = new Intent(context, LocationService.class);
         long triggerAtMillis = SystemClock.elapsedRealtime() + Constants.CONFIG.UPLOAD_INTERVAL;
-        Intent updateAlarmInfo = new Intent(context, LocationService.class);
 
-        updateAlarmInfo.setAction(Constants.ACTION.UPDATE_ALARM_INFO);
-        updateAlarmInfo.putExtra("triggerAtMillis", triggerAtMillis);
-        context.startService(updateAlarmInfo);
+        AlarmManager alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(context, LocationService.class);
+
+        Log.i(TAG, "[ALARM] First alarm at " + new Date(new Date().getTime() + (triggerAtMillis)));
 
         alarm.setInexactRepeating(
                 AlarmManager.ELAPSED_REALTIME_WAKEUP,
                 triggerAtMillis, // triggerAtMillis
                 Constants.CONFIG.UPLOAD_INTERVAL, // intervalMillis
-                PendingIntent.getBroadcast(context, 0, i, 0)
+                PendingIntent.getBroadcast(context, 0, intent, 0)
         );
+
+
     }
 
     /* Setup the next alarm. The broadcast is first sent by our location service. We then do two things here:
        (1) Setup the next alarm (same same) and (2) send an intent to the location service
        to maybe upload the data. */
     private void setNextAlarm(Context context) {
-        AlarmManager alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        Intent i = new Intent(Constants.ACTION.SCHEDULED_UPLOAD);
         long triggerAtMillis = SystemClock.elapsedRealtime() + Constants.CONFIG.UPLOAD_INTERVAL;
+
+        AlarmManager alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(Constants.ACTION.SCHEDULED_UPLOAD);
+
         Log.i(TAG, "Next alarm at " + new Date(new Date().getTime() + (triggerAtMillis)));
+
         alarm.set(
                 AlarmManager.ELAPSED_REALTIME_WAKEUP,
                 triggerAtMillis,
-                PendingIntent.getBroadcast(context, 0, i, 0)
+                PendingIntent.getBroadcast(context, 0, intent, 0)
         );
+
+        broadcastNextAlarmTime(triggerAtMillis);
+    }
+
+    /**
+     *
+     */
+    public void broadcastNextAlarmTime(Context context, long triggerAtMillis) {
+        Intent updateAlarmInfo = new Intent(context, LocationService.class);
+        updateAlarmInfo.setAction(Constants.ACTION.UPDATE_ALARM_INFO);
+        updateAlarmInfo.putExtra("triggerAtMillis", triggerAtMillis);
+        context.startService(updateAlarmInfo);
     }
 }

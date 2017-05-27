@@ -68,7 +68,7 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
         Log.v(TAG, "onCreate");
 
         if (savedInstanceState == null) {
-            startRegistrationService();
+//            startRegistrationService();
         }
 
         /* Map */
@@ -106,18 +106,13 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
         /* Notification Area */
         if (!isMyServiceRunning(LocationService.class)) {
             Log.v(TAG, "Starting LocationService");
-            Intent service = new Intent(MapsActivity.this, LocationService.class);
-            service.setAction(Constants.ACTION.START_LOCATION_SERVICE);
-            startService(service);
+            sendBroadcast(new Intent(Constants.ACTION.START_LOCATION_SERVICE));
         }
 
         /* Upload Scheduler */
         if (!isMyServiceRunning(UploadScheduler.class)) {
             Log.v(TAG, "Starting Upload Scheduler");
             sendBroadcast(new Intent(Constants.ACTION.SET_INITIAL_ALARM));
-//            Intent service = new Intent(MapsActivity.this, UploadScheduler.class);
-//            service.setAction(Constants.ACTION.SET_INITIAL_ALARM);
-//            startService(service);
         }
 
         uploadTimer = (TextView)findViewById(R.id.uploadTimer);
@@ -163,6 +158,8 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        sendBroadcast(new Intent(Constants.ACTION.SET_INITIAL_ALARM));
+        // FIXME This is wrong
         Intent service = new Intent(MapsActivity.this, LocationService.class);
         service.setAction(Constants.ACTION.ASSISTANT_PERMISSION_UPDATED);
         startService(service);
@@ -264,19 +261,18 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
         tvLocation.setText(getString(R.string.error));
     }
 
-
-    private void uploadData() {
-        Intent uploadData = new Intent(MapsActivity.this, LocationService.class);
-        uploadData.setAction(Constants.ACTION.MANUAL_UPLOAD);
-        startService(uploadData);
+    /* TODO What is this */
+    @Override
+    public void update(Observable observable, Object data) {
+        Log.wtf(TAG, "__update__!: " + data.toString());
+        Toast.makeText(this, "__update__!", Toast.LENGTH_SHORT).show();
     }
 
     public class UIReceiver extends BroadcastReceiver {
         private static final String TAG = "UIReceiver";
         @Override
         public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            switch (action) {
+            switch (intent.getAction()) {
                 case Constants.ACTION.ASSISTANT_PERMISSION_UPDATED:
                     Log.v(TAG, "ASSISTANT_PERMISSION_UPDATED");
                     /* Update the location status text view and make it unclickable. */
@@ -290,13 +286,6 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
                     break;
             }
         }
-    }
-
-    /* TODO */
-    @Override
-    public void update(Observable observable, Object data) {
-        Log.wtf(TAG, "__update__!: " + data.toString());
-        Toast.makeText(this, "__update__!", Toast.LENGTH_SHORT).show();
     }
 
     /* Register broadcast receivers */
@@ -321,19 +310,25 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
         if (uploadScheduler != null) unregisterReceiver(uploadScheduler);
     }
 
-    private void startRegistrationService() {
-        GoogleApiAvailability api = GoogleApiAvailability.getInstance();
-        int code = api.isGooglePlayServicesAvailable(this);
-        if (code == ConnectionResult.SUCCESS) {
-            onActivityResult(REQUEST_GOOGLE_PLAY_SERVICES, Activity.RESULT_OK, null);
-        } else if (api.isUserResolvableError(code) &&
-                api.showErrorDialogFragment(this, code, REQUEST_GOOGLE_PLAY_SERVICES)) {
-            Log.v(TAG, "startRegistrationService: WHAT HELLO WHAT WHAT HELP PLZ");
-            // wait for onActivityResult call (see below)
-        } else {
-            Toast.makeText(this, api.getErrorString(code), Toast.LENGTH_LONG).show();
-        }
+    private void uploadData() {
+        Intent uploadData = new Intent(MapsActivity.this, LocationService.class);
+        uploadData.setAction(Constants.ACTION.MANUAL_UPLOAD);
+        startService(uploadData);
     }
+
+//    private void startRegistrationService() {
+//        GoogleApiAvailability api = GoogleApiAvailability.getInstance();
+//        int code = api.isGooglePlayServicesAvailable(this);
+//        if (code == ConnectionResult.SUCCESS) {
+//            onActivityResult(REQUEST_GOOGLE_PLAY_SERVICES, Activity.RESULT_OK, null);
+//        } else if (api.isUserResolvableError(code) &&
+//                api.showErrorDialogFragment(this, code, REQUEST_GOOGLE_PLAY_SERVICES)) {
+//            Log.v(TAG, "startRegistrationService: WHAT HELLO WHAT WHAT HELP PLZ");
+//            // wait for onActivityResult call (see below)
+//        } else {
+//            Toast.makeText(this, api.getErrorString(code), Toast.LENGTH_LONG).show();
+//        }
+//    }
 
     /**
      * Manipulates the map once available.
