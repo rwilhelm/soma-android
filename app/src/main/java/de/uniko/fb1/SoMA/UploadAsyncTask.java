@@ -38,7 +38,7 @@ class UploadAsyncTask extends AsyncTask<List<DatabaseHelper.DataObject>, Integer
         uploader.uploadLocations(context, params, new VolleyCallback(){
             @Override
             public void onSuccessResponse(int httpStatusCode) {
-                Log.i(TAG, "UPLOAD SUCCESS" + httpStatusCode);
+                Log.i(TAG, "UPLOAD SUCCESS " + httpStatusCode);
             }
 
             @Override

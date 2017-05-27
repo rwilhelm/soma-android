@@ -11,32 +11,44 @@ import android.app.AlarmManager;
 final class Constants {
 
     /* TODO https://developer.android.com/samples/BluetoothChat/src/com.example.android.bluetoothchat/Constants.html */
-    public static final String APP_NAME = "SoMA";
+    static final String APP_NAME = "SoMA";
 
     /* Application settings */
-    public static final long UPDATE_INTERVAL = 5000;
+    interface CONFIG {
 
-    /* Upload scheduler */
-    public static final long UPLOAD_INTERVAL = AlarmManager.INTERVAL_HALF_DAY;
+        /* Start tracking when app (MapActivity) starts */
+        boolean AUTO_START = true;
 
+        /* Update the location evey 5 seconds */
+        long UPDATE_INTERVAL = 5000;
 
-    public interface ACTION {
+        /* Automatically upload the location data every ... */
+        long UPLOAD_INTERVAL = AlarmManager.INTERVAL_FIFTEEN_MINUTES;
+    }
+
+    interface ACTION {
 
         /* Alarm goes off and triggers data upload */
-        String SCHEDULED_UPLOAD                  = "de.uniko.fb1.SoMA.action.SCHEDULED_UPLOAD";
+        String SCHEDULED_UPLOAD = "de.uniko.fb1.SoMA.action.SCHEDULED_UPLOAD";
+        String MANUAL_UPLOAD = "de.uniko.fb1.SoMA.action.MANUAL_UPLOAD";
+        String SET_INITIAL_ALARM = "de.uniko.fb1.SoMA.action.SET_INITIAL_ALARM";
 
         /* LocationAssistant reconfigured */
-        String ASSISTANT_PERMISSION_UPDATED      = "de.uniko.fb1.SoMA.action.ASSISTANT_PERMISSION_UPDATED";
+        String ASSISTANT_PERMISSION_UPDATED = "de.uniko.fb1.SoMA.action.ASSISTANT_PERMISSION_UPDATED";
 
-        /* Alarm goes off and triggers data upload */
-        String RESUME_FOREGROUND_ACTION          = "de.uniko.fb1.SoMA.action.RESUME_FOREGROUND_ACTION";
+        /* When you tap the notification */
+        String RESUME_FOREGROUND_ACTION = "de.uniko.fb1.SoMA.action.RESUME_FOREGROUND_ACTION";
 
         /* -> LocationService */
-        String START_ASSISTANT                   = "de.uniko.fb1.SoMA.action.START_ASSISTANT";
-        String STOP_ASSISTANT                    = "de.uniko.fb1.SoMA.action.STOP_ASSISTANT";
+        String START_LOCATION_SERVICE = "de.uniko.fb1.SoMA.action.START_LOCATION_SERVICE";
+        String STOP_LOCATION_SERVICE = "de.uniko.fb1.SoMA.action.STOP_LOCATION_SERVICE";
+
+        /* -> LocationAssistant */
+        String START_LOCATION_ASSISTANT = "de.uniko.fb1.SoMA.action.START_LOCATION_ASSISTANT";
+        String STOP_LOCATION_ASSISTANT = "de.uniko.fb1.SoMA.action.STOP_LOCATION_ASSISTANT";
 
         /* New location received */
-        String LOCATION_UPDATED = "de.uniko.fb1.SoMA.action.LOCATION_UPDATE";
+        String LOCATION_UPDATED = "de.uniko.fb1.SoMA.action.LOCATION_UPDATED";
 
         /* Upload successful */
         String UPLOAD_SUCCESS = "de.uniko.fb1.SoMA.action.UPLOAD_SUCCESS";
@@ -44,6 +56,7 @@ final class Constants {
         /* Upload failed */
         String CONNECTION_FAILED = "de.uniko.fb1.SoMA.action.CONNECTION_FAILED";
 
+        String UPDATE_ALARM_INFO = "de.uniko.fb1.SoMA.action.UPDATE_ALARM_INFO";
     }
 
     public interface EVENT {

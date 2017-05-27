@@ -80,16 +80,19 @@ class UploadHelperVolley {
     void uploadLocations(final Context context, final List<DatabaseHelper.DataObject>[] locations, final VolleyCallback callback) {
         Log.w(TAG, "uploadLocations: Uploading " + locations.length + " locations" );
 
-        // TODO iterate over locations instead (which are lists of locations actually)
         // http://blog.applegrew.com/2015/04/using-pinned-self-signed-ssl-certificate-with-android-volley/
         // http://stackoverflow.com/a/28120209/220472
 
+        // Get device id
+        @SuppressLint("HardwareIds")
+        String clientId = Settings.Secure.getString(context.getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+
         DatabaseHelper db = DatabaseHelper.getInstance(context);
         String url = context.getString(R.string.upload_url);
-        @SuppressLint("HardwareIds") String clientId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
-        UploadObject u = new UploadObject(clientId, locations[0]);
 
-        Log.i(TAG, "Request Body: " + u.getRequestBody());
+        // TODO iterate over locations instead (which are lists of locations actually)
+        UploadObject u = new UploadObject(clientId, locations[0]);
 
         HurlStack hurlStack = new HurlStack() {
             @Override
@@ -109,10 +112,10 @@ class UploadHelperVolley {
 
         final StringRequest uploadRequest = new StringRequest(Request.Method.POST, url,
                 response -> {
-                    Log.w(TAG, "UPLOAD SUCCESS 1 response: " + response);
+                    Log.w(TAG, "[UPLOAD REQUEST] Response: " + response);
                 },
                 error -> {
-                    Log.w(TAG, "UPLOAD FAILURE " + error.getMessage());
+                    Log.w(TAG, "[UPLOAD REQUEST] Failure: " + error.getMessage());
                     queue.stop(); // TODO
                 }) {
 
@@ -126,8 +129,6 @@ class UploadHelperVolley {
                 int httpStatusCode = response.statusCode;
                 if (httpStatusCode == 200) {
                     callback.onSuccessResponse(httpStatusCode); // TODO See VolleyCallback.java
-                } else if (httpStatusCode == 400) {
-                    callback.onFailureResponse(httpStatusCode); // TODO See VolleyCallback.java
                 } else {
                     callback.onFailureResponse(httpStatusCode);
                 }
@@ -136,7 +137,9 @@ class UploadHelperVolley {
 
             @Override
             public byte[] getBody() throws AuthFailureError {
-                return u.getRequestBody().getBytes();
+                String requestBody = u.getRequestBody();
+                Log.i(TAG, "Request Body: " + requestBody);
+                return requestBody.getBytes();
             }
 
             /* Get headers */
@@ -153,8 +156,11 @@ class UploadHelperVolley {
 
         RequestQueue.RequestFinishedListener listener = request -> {
             if (request.equals(uploadRequest)) {
-                Log.i(TAG, "onRequestFinished: " + u.getLocationIds());
-                u.getLocationIds().forEach(db::deleteLocation);
+                Log.i(TAG, "[UPLOAD REQUEST] RequestFinishedListener: " + u.getLocationIds());
+                //  u.getLocationIds().forEach(db::deleteLocation);
+                for (int id: u.getLocationIds()) {
+                    db.deleteLocation(id);
+                }
             }
         };
 
@@ -175,7 +181,7 @@ class UploadHelperVolley {
             HostnameVerifier hv = HttpsURLConnection.getDefaultHostnameVerifier();
             // return true;
             // return hv.verify("localhost", session);
-            return hv.verify("soma.uni-koblenz.de", session);
+            return hv.verify("soma.uni-koblenz.de", session); // TODO Extract string resource
         };
     }
 
@@ -195,7 +201,7 @@ class UploadHelperVolley {
                                 originalTrustManager.checkClientTrusted(certs, authType);
                             }
                         } catch (CertificateException e) {
-                            Log.w("checkClientTrusted", e.toString());
+                            Log.w("[UNTRUST CLIENT CERT]", e.toString());
                         }
                     }
 
@@ -207,7 +213,7 @@ class UploadHelperVolley {
                                 originalTrustManager.checkServerTrusted(certs, authType);
                             }
                         } catch (CertificateException e) {
-                            Log.w("checkServerTrusted", e.toString());
+                            Log.w("[UNTRUST SERVER CERT]", e.toString());
                         }
                     }
                 }
@@ -216,15 +222,17 @@ class UploadHelperVolley {
 
     private SSLSocketFactory getSSLSocketFactory(Context context)
             throws KeyStoreException, IOException, NoSuchAlgorithmException, KeyManagementException, java.security.cert.CertificateException {
-        CertificateFactory cf = CertificateFactory.getInstance("X.509");
-        InputStream caInput = context.getApplicationContext().getResources().openRawResource(R.raw.mycert); // this cert file stored in \app\src\main\res\raw folder path
 
+        // Cert file stored in app/src/main/res/raw
+        InputStream caInput = context.getApplicationContext().getResources().openRawResource(R.raw.mycert);
+
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
         Certificate ca = cf.generateCertificate(caInput);
         caInput.close();
 
         KeyStore keyStore = KeyStore.getInstance("BKS");
-        keyStore.load(null, null);
         keyStore.setCertificateEntry("ca", ca);
+        keyStore.load(null, null);
 
         String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
         TrustManagerFactory tmf = TrustManagerFactory.getInstance(tmfAlgorithm);

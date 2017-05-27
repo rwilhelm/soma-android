@@ -11,6 +11,7 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -22,6 +23,15 @@ import java.util.List;
 public class LocationService extends Service {
 
     private static final String TAG = "LocationService";
+
+    /*
+    * What this service does ...
+    * - Start the notification service and keep it running in the background.
+    * - Update the notification via received Intent.
+    * - Receive intents to start/stop the notification service.
+    * */
+
+    private static long triggerAtMillis;
 
     /**
      * Show in notification bar
@@ -42,6 +52,12 @@ public class LocationService extends Service {
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
                 notificationIntent, 0);
 
+        // FIXME
+        long now = new Date().getTime();
+        long endTime = new Date(now + triggerAtMillis).getTime();
+        long secondsUntilUpload = (endTime - now)/1000;
+        Log.i(TAG, "First alarm at " + new Date(new Date().getTime() + secondsUntilUpload) + " seconds");
+
         NotificationCompat.Builder notification =
                 new NotificationCompat.Builder(this)
                         .setContentTitle(Constants.APP_NAME)
@@ -61,12 +77,37 @@ public class LocationService extends Service {
         return notification;
     }
 
+    private void startLocationService() {
+        Log.i(TAG, "startLocationService");
+        startForeground(Constants.NOTIFICATION_ID.FOREGROUND_SERVICE, updateNotification().build());
+    }
+
+    private void stopLocationService() {
+        Log.i(TAG, "stopLocationService");
+        stopForeground(true); // Stop running in the background
+        stopSelf();
+    }
+
+    /* Upload all data, one by one (deletes after success) */
+    private void uploadData() {
+        Log.v(TAG, "uploadData");
+        DatabaseHelper db = DatabaseHelper.getInstance(this);
+        List<DatabaseHelper.DataObject> locations = db.getLocations();
+
+        // noinspection unchecked
+        new UploadAsyncTask(this).execute(locations);
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
         Log.v(TAG, "onCreate");
+
+        Log.i(TAG, "Starting sticky foreground notification service");
         startForeground(Constants.NOTIFICATION_ID.FOREGROUND_SERVICE, updateNotification().build());
-        sendBroadcast(new Intent(Constants.ACTION.START_ASSISTANT));
+
+        Log.i(TAG, "Asking the main activity to start the Location Assistant");
+        sendBroadcast(new Intent(Constants.ACTION.START_LOCATION_SERVICE)); // FIXME
     }
 
     @Override
@@ -78,14 +119,18 @@ public class LocationService extends Service {
             if (action != null) {
                 Log.i(TAG, "onStartCommand: " + action);
                 switch (action) {
-                    case Constants.ACTION.START_ASSISTANT:
+                    case Constants.ACTION.START_LOCATION_SERVICE:
                         startLocationService();
                         break;
-                    case Constants.ACTION.STOP_ASSISTANT:
+                    case Constants.ACTION.STOP_LOCATION_SERVICE:
                         stopLocationService();
                         break;
-                    case Constants.ACTION.SCHEDULED_UPLOAD:
+                    case Constants.ACTION.MANUAL_UPLOAD:
                         uploadData();
+                        break;
+                    case Constants.ACTION.UPDATE_ALARM_INFO:
+                        triggerAtMillis = intent.getLongExtra("triggerAtMillis", 555);
+                        updateNotification();
                         break;
                     case Constants.ACTION.LOCATION_UPDATED:
                         updateNotification();
@@ -100,20 +145,10 @@ public class LocationService extends Service {
         return START_STICKY;
     }
 
-    private void startLocationService() {
-        Log.i(TAG, "startLocationService");
-    }
-
-    private void stopLocationService() {
-        Log.i(TAG, "stopLocationService");
-        stopForeground(true); // TODO What is this?
-        stopSelf();
-    }
-
     @Override
     public void onDestroy() {
         Log.w(TAG, "onDestroy");
-        sendBroadcast(new Intent(Constants.ACTION.STOP_ASSISTANT));
+        sendBroadcast(new Intent(Constants.ACTION.STOP_LOCATION_SERVICE));
         super.onDestroy(); // should be called last
     }
 
@@ -124,16 +159,5 @@ public class LocationService extends Service {
         return null;
     }
 
-    /**
-     * Upload all data, one by one (deletes after success)
-     */
-    private void uploadData() {
-        Log.v(TAG, "uploadData");
-        DatabaseHelper db = DatabaseHelper.getInstance(this);
-        List<DatabaseHelper.DataObject> locations = db.getLocations();
-
-        // noinspection unchecked
-        new UploadAsyncTask(this).execute(locations);
-    }
 }
 

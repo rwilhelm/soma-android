@@ -326,6 +326,17 @@ public class LocationAssistant
     }
 
     /**
+     * Return some status
+     * */
+    public boolean isConnected() {
+        return googleApiClient.isConnected();
+    }
+
+    public boolean isLocationStatusOk() {
+        return locationStatusOk;
+    }
+
+    /**
      * Returns the best valid location currently available.
      * Usually, this will be the last valid location that was received.
      *
