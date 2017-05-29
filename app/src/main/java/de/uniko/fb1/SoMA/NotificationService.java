@@ -11,7 +11,6 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -20,9 +19,9 @@ import java.util.List;
  * Created by asdf on 2/7/17.
  */
 
-public class LocationService extends Service {
+public class NotificationService extends Service {
 
-    private static final String TAG = "LocationService";
+    private static final String TAG = "NotificationService";
 
     /*
     * What this service does ...
@@ -52,11 +51,11 @@ public class LocationService extends Service {
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
                 notificationIntent, 0);
 
-        // FIXME
-        long now = new Date().getTime();
-        long endTime = new Date(now + triggerAtMillis).getTime();
-        long secondsUntilUpload = (endTime - now)/1000;
-        Log.i(TAG, "First alarm at " + new Date(new Date().getTime() + secondsUntilUpload) + " seconds");
+//        // FIXME
+//        long now = new Date().getTime();
+//        long endTime = new Date(now + triggerAtMillis).getTime();
+//        long secondsUntilUpload = (endTime - now)/1000;
+//        Log.i(TAG, "First alarm at " + new Date(new Date().getTime() + secondsUntilUpload) + " seconds");
 
         NotificationCompat.Builder notification =
                 new NotificationCompat.Builder(this)
@@ -92,7 +91,7 @@ public class LocationService extends Service {
     private void uploadData() {
         Log.v(TAG, "uploadData");
         DatabaseHelper db = DatabaseHelper.getInstance(this);
-        List<DatabaseHelper.DataObject> locations = db.getLocations();
+        List<LocationObject> locations = db.getLocations();
 
         // noinspection unchecked
         new UploadAsyncTask(this).execute(locations);
@@ -105,9 +104,9 @@ public class LocationService extends Service {
 
         Log.i(TAG, "Starting sticky foreground notification service");
         startForeground(Constants.NOTIFICATION_ID.FOREGROUND_SERVICE, updateNotification().build());
-
-        Log.i(TAG, "Asking the main activity to start the Location Assistant");
-        sendBroadcast(new Intent(Constants.ACTION.START_LOCATION_SERVICE)); // FIXME
+//
+//        Log.i(TAG, "Asking the main activity to start the Location Assistant");
+//        sendBroadcast(new Intent(Constants.ACTION.START_LOCATION_SERVICE)); // FIXME
     }
 
     @Override
@@ -132,7 +131,7 @@ public class LocationService extends Service {
                         triggerAtMillis = intent.getLongExtra("triggerAtMillis", 555);
                         updateNotification();
                         break;
-                    case Constants.ACTION.LOCATION_UPDATED:
+                    case Constants.EVENT.LOCATION_UPDATED:
                         updateNotification();
                         break;
                 }

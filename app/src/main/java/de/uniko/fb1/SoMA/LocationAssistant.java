@@ -49,12 +49,16 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 
+import static android.content.ContentValues.TAG;
+
 /**
  * A helper class that monitors the available location info on behalf of a requesting activity or application.
  */
 @SuppressWarnings("SameParameterValue")
 public class LocationAssistant
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+
+    private static final String TAG = "LocationAssistant";
 
     /**
      * Delivers relevant events required to obtain (valid) location info.
@@ -242,6 +246,7 @@ public class LocationAssistant
                     .addApi(LocationServices.API)
                     .build();
         }
+        Log.d(TAG, "googleApiClient 0: " + googleApiClient.isConnected());
     }
 
     /**
@@ -329,6 +334,7 @@ public class LocationAssistant
      * Return some status
      * */
     public boolean isConnected() {
+        Log.d(TAG, "googleApiClient 1: " + googleApiClient.isConnected());
         return googleApiClient.isConnected();
     }
 
@@ -493,6 +499,7 @@ public class LocationAssistant
     }
 
     private void checkInitialLocation() {
+        Log.d(TAG, "checkInitialLocation: " + googleApiClient.isConnected());
         if (!googleApiClient.isConnected() || !permissionGranted || !locationRequested || !locationStatusOk) return;
         try {
             Location location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
@@ -545,6 +552,7 @@ public class LocationAssistant
         if (!googleApiClient.isConnected() || !permissionGranted) return false;
         try {
             LocationAvailability la = LocationServices.FusedLocationApi.getLocationAvailability(googleApiClient);
+            Log.d(TAG, "googleApiClient 5: " + googleApiClient.isConnected());
             return (la != null && la.isLocationAvailable());
         } catch (SecurityException e) {
             if (!quiet)
@@ -572,8 +580,10 @@ public class LocationAssistant
 
     private void requestLocationUpdates() {
         if (!googleApiClient.isConnected() || !permissionGranted || !locationRequested) return;
+        Log.d(TAG, "googleApiClient 6: " + googleApiClient.isConnected());
         try {
             LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
+            Log.d(TAG, "googleApiClient 7: " + googleApiClient.isConnected());
             updatesRequested = true;
         } catch (SecurityException e) {
             if (!quiet)

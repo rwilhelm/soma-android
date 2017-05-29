@@ -96,7 +96,7 @@
         </service>
 
         <service
-            android:name="de.uniko.fb1.SoMA.LocationService"
+            android:name="de.uniko.fb1.SoMA.NotificationService"
             android:exported="false" />
 
         <receiver
@@ -105,11 +105,15 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.ACTION_SHUTDOWN" />
-                <action android:name="de.uniko.fb1.SoMA.action.SCHEDULED_UPLOAD" />
-                <action android:name="de.uniko.fb1.SoMA.action.SET_INITIAL_ALARM" />
+                <action android:name="android.intent.action.TIME_TICK" />
+
+                <action android:name="de.uniko.fb1.SoMA.action.SET_FIRST_ALARM" />
+                <action android:name="de.uniko.fb1.SoMA.action.SET_NEXT_ALARM" />
+
+                <action android:name="de.uniko.fb1.SoMA.event.ALARM_TRIGGERED" />
             </intent-filter>
         </receiver>
+
     </application>
 
 </manifest>

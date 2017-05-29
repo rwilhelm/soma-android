@@ -1,18 +1,13 @@
 package de.uniko.fb1.SoMA;
 
-import android.annotation.TargetApi;
-import android.app.Activity;
 import android.app.ActivityManager;
-import android.app.AlarmManager;
 import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
 import android.location.Location;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -42,11 +37,10 @@ import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
-public class MapsActivity extends FragmentActivity implements Observer, OnMapReadyCallback, LocationAssistant.Listener {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationAssistant.Listener {
 
-    private static final String TAG = "MapsActivity";
+    private static final String TAG = MapsActivity.class.getSimpleName();
 
-    private static final int REQUEST_GOOGLE_PLAY_SERVICES = 1972;
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 200;
 
     private final List<Marker> myMarkers = new ArrayList<>();
@@ -57,22 +51,37 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
 
     private UploadScheduler uploadScheduler;
     private LocationAssistant assistant;
-    private UIReceiver uiReceiver;
-    private TextView uploadTimer;
     private TextView tvLocation;
     private Location lastLocation;
+
+    private LocationAssistant.Listener listener = new LocationListener();
+
+    /**
+     *
+     *
+     *
+     *
+     */
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        tvLocation.setOnClickListener(null);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         Log.v(TAG, "onCreate");
 
+        setContentView(R.layout.activity_maps);
+
         if (savedInstanceState == null) {
-//            startRegistrationService();
+            Log.w(TAG, "[ACTIVITY] No savedInstanceState");
+            // startRegistrationService();
         }
 
-        /* Map */
-        setContentView(R.layout.activity_maps);
+        /* Map fragment */
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -80,7 +89,7 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
         /* Upload Button */
         Button uploadButton = (Button) findViewById(R.id.upload);
         uploadButton.setOnClickListener(v -> {
-            showSnackBar("Uploading data ...");
+            showSnackBar("Uploading data");
             uploadData();
         });
 
@@ -92,48 +101,54 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
         assistant = new LocationAssistant(this, this, LocationAssistant.Accuracy.HIGH, Constants.CONFIG.UPDATE_INTERVAL, false);
         assistant.setVerbose(false);
 
+        if (isLocationAssistantRunning) {
+            assistant.start();
+        }
+//
+//        // FIXME This is maybe wrong
+//        Intent firstAlarm = new Intent(this, UploadScheduler.class);
+//        firstAlarm.setAction(Constants.ACTION.SET_FIRST_ALARM);
+//        startService(firstAlarm);
+
         /* On-off Switch */
-        Switch onOffSwitch = (Switch) findViewById(R.id.switch_on_off);
-        onOffSwitch.setChecked(assistant.isConnected()); // FIXME
+        Switch onOffSwitch = (Switch) findViewById(R.id.assistantSwitch);
+        onOffSwitch.setChecked(isLocationAssistantRunning); // FIXME
         onOffSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (assistant.isConnected()) {
-                startLocationAssistant();
+            if (isChecked) {
+                assistant.start();
+                isLocationAssistantRunning = true;
             } else {
-                stopLocationAssistant();
+                assistant.stop();
+                isLocationAssistantRunning = false;
             }
         });
 
         /* Notification Area */
-        if (!isMyServiceRunning(LocationService.class)) {
-            Log.v(TAG, "Starting LocationService");
-            sendBroadcast(new Intent(Constants.ACTION.START_LOCATION_SERVICE));
+        if (!isMyServiceRunning(NotificationService.class)) {
+            Log.v(TAG, "[MAIN CREATE] Starting NotificationService");
+            Intent intent = new Intent(this, NotificationService.class);
+            intent.setAction(Constants.ACTION.START_LOCATION_SERVICE);
+            startService(intent);
         }
 
         /* Upload Scheduler */
+        Log.v(TAG, "[ALARM] Working ...");
         if (!isMyServiceRunning(UploadScheduler.class)) {
-            Log.v(TAG, "Starting Upload Scheduler");
-            sendBroadcast(new Intent(Constants.ACTION.SET_INITIAL_ALARM));
+            Log.v(TAG, "[ALARM] Starting UploadScheduler");
+            startService(new Intent(this, UploadScheduler.class));
+        } else {
+            Log.v(TAG, "[ALARM] UploadScheduler already running");
         }
-
-        uploadTimer = (TextView)findViewById(R.id.uploadTimer);
-        uploadTimer.setText(String.valueOf(Calendar.getInstance().get(Calendar.MINUTE)));
 
         registerBroadcastReceiver();
 
-        Log.v(TAG, "Google Play Services available: " + checkPlayServices());
-        Log.v(TAG, "Is location status ok: " + assistant.isLocationStatusOk());
-    }
+        //            Intent intent = new Intent(this, UploadScheduler.class);
+//            intent.setAction(Constants.ACTION.SET_FIRST_ALARM);
+//            startService(intent);
 
-    public void startLocationAssistant() {
-        Log.d(TAG, "Starting Location Assistant");
-        assistant.start();
-        isLocationAssistantRunning = true;
-    }
+        Log.d(TAG, "Google Play Services available: " + checkPlayServices());
+        Log.d(TAG, "Is location status ok: " + assistant.isLocationStatusOk());
 
-    public void stopLocationAssistant() {
-        Log.d(TAG, "Stopping Location Assistant");
-        assistant.stop();
-        isLocationAssistantRunning = false;
     }
 
     @Override
@@ -154,21 +169,18 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
         super.onResume();
         Log.v(TAG, "[4] onResume");
         registerBroadcastReceiver();
+        assistant.register(this, listener);
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        sendBroadcast(new Intent(Constants.ACTION.SET_INITIAL_ALARM));
-        // FIXME This is wrong
-        Intent service = new Intent(MapsActivity.this, LocationService.class);
-        service.setAction(Constants.ACTION.ASSISTANT_PERMISSION_UPDATED);
-        startService(service);
-    }
+    /**
+     *
+     *
+     *
+     *
+     */
 
     @Override
     public void onNeedLocationPermission() {
-        updateMap(assistant.bestLocation);
-        updateUI(assistant.bestLocation);
         tvLocation.setText("Need\nPermission");
         tvLocation.setOnClickListener(view -> assistant.requestLocationPermission());
         assistant.requestAndPossiblyExplainLocationPermission();
@@ -220,34 +232,39 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
     @Override
     public void onNewLocationAvailable(Location location) {
         Log.d(TAG, "onNewLocationAvailable " + location);
-        if (location == null || lastLocation != null && location.getTime() == lastLocation.getTime()) return;
-        lastLocation = location;
+
+        if (!isLocationAssistantRunning) {
+            Log.d(TAG, "[NEWLOCATION] Not taking it " + location);
+
+            return;
+        }
+
+        if (location == null) {
+            Log.d(TAG, "[NEWLOCATION] It is null");
+            return;
+        }
+
+//        if (lastLocation != null && location.getTime() == lastLocation.getTime()) {
+//            Log.d(TAG, "[NEWLOCATION] Same timestamp " + location.getTime());
+//            return;
+//        }
+
+        if (isMyServiceRunning(NotificationService.class)) {
+            sendBroadcast(new Intent(Constants.EVENT.LOCATION_UPDATED).putExtra("location", location));
+        }
+
+        Log.d(TAG, "[NEWLOCATION] Adding location to DatabaseHelper");
+
+//        lastLocation = location;
+
         DatabaseHelper db = DatabaseHelper.getInstance(this);
         db.addLocation(location);
 
-        // TODO Compare sending intents vs sending broadcasts
-        // sendBroadcast(new Intent(Constants.ACTION.LOCATION_UPDATED).putExtra("location", location));
-        if (isMyServiceRunning(LocationService.class)) {
-            Intent service = new Intent(MapsActivity.this, LocationService.class);
-            service.setAction(Constants.ACTION.LOCATION_UPDATED);
-            startService(service);
-        }
+        // FIXME Who whants to know? (A) Notification, (B) UI TextView and (C) DatabaseHelper.add
+        // TODO Rename NotificationService at it is not a location service but a notification service
 
         updateMap(location); // FIXME
         updateUI(location);
-        listAlarms();
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private void listAlarms() {
-        AlarmManager mAlarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-
-        for (AlarmManager.AlarmClockInfo aci = mAlarmManager.getNextAlarmClock();
-             aci != null;
-             aci = mAlarmManager.getNextAlarmClock()) {
-            Log.d(TAG, aci.getShowIntent().toString());
-            Log.d(TAG, String.format("Trigger time: %d", aci.getTriggerTime()));
-        }
     }
 
     @Override
@@ -258,60 +275,86 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
 
     @Override
     public void onError(LocationAssistant.ErrorType type, String message) {
+        tvLocationError();
+    }
+
+    private void updateUI(Location location) {
+        if (location == null) return;
+        tvLocation.setOnClickListener(null);
+        tvLocation.setText(location.getLongitude() + "\n" + location.getLatitude());
+        tvLocation.setAlpha(1.0f);
+        tvLocation.animate().alpha(0.5f).setDuration(400);
+    }
+
+    /**
+     *
+     *
+     *
+     *
+     */
+
+    public void startLocationAssistant() {
+        Log.d(TAG, "Starting Location Assistant");
+        assistant.start();
+        isLocationAssistantRunning = true;
+    }
+
+    public void stopLocationAssistant() {
+        Log.d(TAG, "Stopping Location Assistant");
+        assistant.stop();
+        isLocationAssistantRunning = false;
+    }
+
+    private void tvLocationError() {
+        /* Update the location status text view and make it unclickable. */
         tvLocation.setText(getString(R.string.error));
     }
 
-    /* TODO What is this */
-    @Override
-    public void update(Observable observable, Object data) {
-        Log.wtf(TAG, "__update__!: " + data.toString());
-        Toast.makeText(this, "__update__!", Toast.LENGTH_SHORT).show();
-    }
+//    /* TODO Observable Pattern */
+//    @Override
+//    public void update(Observable observable, Object data) {
+//        Log.wtf(TAG, "__update__!: " + data.toString());
+//        Toast.makeText(this, "__update__!", Toast.LENGTH_SHORT).show();
+//    }
 
-    public class UIReceiver extends BroadcastReceiver {
-        private static final String TAG = "UIReceiver";
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            switch (intent.getAction()) {
-                case Constants.ACTION.ASSISTANT_PERMISSION_UPDATED:
-                    Log.v(TAG, "ASSISTANT_PERMISSION_UPDATED");
-                    /* Update the location status text view and make it unclickable. */
-                    tvLocation.setOnClickListener(null);
-                    break;
-                case Intent.ACTION_TIME_TICK:
-                    if(intent.getAction().compareTo(Intent.ACTION_TIME_TICK)==0) {
-                        Log.v(TAG, "ACTION_TIME_TICK");
-                        uploadTimer.setText(String.valueOf(Calendar.getInstance().get(Calendar.MINUTE)));
-                    }
-                    break;
-            }
-        }
-    }
+//    /* TODO BroadcastReceiver Pattern */
+//    public class UIReceiver extends BroadcastReceiver {
+//        private static final String TAG = "UIReceiver";
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            switch (intent.getAction()) {
+//                case Intent.ACTION_TIME_TICK:
+//                    if(intent.getAction().compareTo(Intent.ACTION_TIME_TICK)==0) {
+//                        Log.v(TAG, "[MAIN RECEIVER] ACTION_TIME_TICK " + new Date().getTime());
+//                        uploadTimer.setText(String.valueOf(Calendar.getInstance().get(Calendar.MINUTE)));
+//                    }
+//                    break;
+//            }
+//        }
+//    }
 
     /* Register broadcast receivers */
     private void registerBroadcastReceiver() {
         Log.v(TAG, "Register broadcast receivers");
-
         if (uploadScheduler == null) uploadScheduler = new UploadScheduler();
         registerReceiver(uploadScheduler, new IntentFilter(Intent.ACTION_BOOT_COMPLETED));
         registerReceiver(uploadScheduler, new IntentFilter(Constants.ACTION.SCHEDULED_UPLOAD));
-        registerReceiver(uploadScheduler, new IntentFilter(Constants.ACTION.SET_INITIAL_ALARM));
+        registerReceiver(uploadScheduler, new IntentFilter(Constants.ACTION.SET_FIRST_ALARM));
+        registerReceiver(uploadScheduler, new IntentFilter(Constants.ACTION.SET_NEXT_ALARM));
+        registerReceiver(uploadScheduler, new IntentFilter(Constants.EVENT.ALARM_TRIGGERED));
 
-        if (uiReceiver == null) uiReceiver = new UIReceiver();
-        registerReceiver(uiReceiver, new IntentFilter(Constants.ACTION.ASSISTANT_PERMISSION_UPDATED));
-        registerReceiver(uiReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
-
+        // FIXME maybe register broadcastreceiver for notificationService not here but over there
+        registerReceiver(uploadScheduler, new IntentFilter(Constants.EVENT.LOCATION_UPDATED));
     }
 
     /* Unregister broadcast receivers */
     private void unregisterBroadcastReceiver() {
         Log.v(TAG, "Unregister broadcast receivers");
-        if (uiReceiver != null) unregisterReceiver(uiReceiver);
         if (uploadScheduler != null) unregisterReceiver(uploadScheduler);
     }
 
     private void uploadData() {
-        Intent uploadData = new Intent(MapsActivity.this, LocationService.class);
+        Intent uploadData = new Intent(MapsActivity.this, NotificationService.class);
         uploadData.setAction(Constants.ACTION.MANUAL_UPLOAD);
         startService(uploadData);
     }
@@ -331,29 +374,14 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
 //    }
 
     /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
+     *
+     * Map
+     *
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         Log.v(TAG, "onMapReady");
         map = googleMap;
-    }
-
-    /* Check if a service is running*/
-    private boolean isMyServiceRunning(Class<?> serviceClass) {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.getName().equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void updateMap(Location location) {
@@ -370,7 +398,7 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
     private void drawPolyline() {
         DatabaseHelper db = DatabaseHelper.getInstance(this);
         List<LatLng> latLngs = new ArrayList<>();
-        for (DatabaseHelper.DataObject l: db.getLocations()) {
+        for (LocationObject l: db.getLocations()) {
             latLngs.add(l.getLatLng());
         }
 
@@ -382,12 +410,19 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
         line.setPoints(latLngs);
     }
 
-    private void updateUI(Location location) {
-        if (location == null) return;
-        tvLocation.setOnClickListener(null);
-        tvLocation.setText(location.getLongitude() + "\n" + location.getLatitude());
-        tvLocation.setAlpha(1.0f);
-        tvLocation.animate().alpha(0.5f).setDuration(400);
+    /**
+     * Helpers
+     */
+
+    /* Check if a service is running*/
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // http://stackoverflow.com/a/31016761/220472
@@ -412,4 +447,5 @@ public class MapsActivity extends FragmentActivity implements Observer, OnMapRea
     private void showToast(Context context, String string) {
         Toast.makeText(context, string, Toast.LENGTH_SHORT).show();
     }
+
 }
