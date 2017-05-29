@@ -55,9 +55,9 @@ class UploadHelperVolley {
     private static class UploadObject {
         private final String uuid;
         private final String device_id;
-        private final List<DatabaseHelper.DataObject> locationData;
+        private final List<LocationObject> locationData;
 
-        UploadObject(String device_id, List<DatabaseHelper.DataObject> locationData) {
+        UploadObject(String device_id, List<LocationObject> locationData) {
             this.uuid = UUID.randomUUID().toString();
             this.device_id = device_id;
             this.locationData = locationData;
@@ -69,7 +69,7 @@ class UploadHelperVolley {
 
         ArrayList<Integer> getLocationIds() {
             ArrayList<Integer> ids = new ArrayList<>();
-            for (DatabaseHelper.DataObject location: locationData) {
+            for (LocationObject location: locationData) {
                 location.getId();
                 ids.add(location.getId());
             }
@@ -77,7 +77,7 @@ class UploadHelperVolley {
         }
     }
 
-    void uploadLocations(final Context context, final List<DatabaseHelper.DataObject>[] locations, final VolleyCallback callback) {
+    void uploadLocations(final Context context, final List<LocationObject>[] locations, final VolleyCallback callback) {
         Log.w(TAG, "uploadLocations: Uploading " + locations.length + " locations" );
 
         // http://blog.applegrew.com/2015/04/using-pinned-self-signed-ssl-certificate-with-android-volley/
@@ -231,8 +231,8 @@ class UploadHelperVolley {
         caInput.close();
 
         KeyStore keyStore = KeyStore.getInstance("BKS");
+        keyStore.load(null, null); // Initializes keystore
         keyStore.setCertificateEntry("ca", ca);
-        keyStore.load(null, null);
 
         String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
         TrustManagerFactory tmf = TrustManagerFactory.getInstance(tmfAlgorithm);

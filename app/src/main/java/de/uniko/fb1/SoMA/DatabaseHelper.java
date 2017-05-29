@@ -2,13 +2,12 @@ package de.uniko.fb1.SoMA;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.location.Location;
 import android.util.Log;
-
-import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -132,51 +131,22 @@ class DatabaseHelper extends SQLiteOpenHelper {
             Log.i(TAG, "INSERT VALUES " + values);
             id = db.insertOrThrow(TABLE_LOCATION, null, values);
             db.setTransactionSuccessful();
-            Log.d(TAG, "SUCCESS: " + TABLE_LOCATION + " NEW ID: " + id);
-            return id;
+            Log.v(TAG, "SUCCESS: " + TABLE_LOCATION + " NEW ID: " + id);
+//            return id;
+            return countLocations();
         } catch (Exception e) {
-            Log.w(TAG, e);
+            Log.wtf(TAG, e);
             return -2;
         } finally {
             db.endTransaction();
         }
     }
 
-    static class DataObject {
-        private final int id;
-        private final float altitude;
-        private final float accuracy;
-        private final float latitude;
-        private final float longitude;
-        private final float bearing;
-        private final long timestamp;
-        private final float speed;
-
-        public DataObject(int id, float accuracy, float altitude, float bearing, float latitude, float longitude, long timestamp, float speed) {
-            this.id = id;
-            this.accuracy = accuracy;
-            this.altitude = altitude;
-            this.latitude = latitude;
-            this.longitude = longitude;
-            this.bearing = bearing;
-            this.timestamp = timestamp;
-            this.speed = speed;
-        }
-
-        public int getId() {
-            return this.id;
-        }
-
-        public LatLng getLatLng() {
-            return new LatLng(this.latitude, this.longitude);
-        }
-    }
-
     /*
      * Get all locations in the database
      */
-    List<DataObject> getLocations() {
-        Log.d(TAG, "getLocations");
+    List<LocationObject> getLocations() {
+//        Log.i(TAG, "getLocations");
 
         String LOCATIONS_SELECT_QUERY =
                 String.format("SELECT * FROM %s", TABLE_LOCATION);
@@ -184,12 +154,12 @@ class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(LOCATIONS_SELECT_QUERY, null);
 
-        List<DataObject> locations = new ArrayList<>();
+        List<LocationObject> locations = new ArrayList<>();
 
         try {
             if (cursor.moveToFirst()) {
                 do {
-                    DataObject loc = new DataObject(
+                    LocationObject loc = new LocationObject(
                             cursor.getInt(cursor.getColumnIndex(KEY_LOCATION_ID)),
                             cursor.getFloat(cursor.getColumnIndex(KEY_LOCATION_ACCURACY)),
                             cursor.getFloat(cursor.getColumnIndex(KEY_LOCATION_ALTITUDE)),
@@ -244,5 +214,4 @@ class DatabaseHelper extends SQLiteOpenHelper {
             db.endTransaction();
         }
     }
-
 }

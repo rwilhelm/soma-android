@@ -13,7 +13,7 @@ import java.util.List;
  * Created by asdf on 2/8/17.
  */
 
-class UploadAsyncTask extends AsyncTask<List<DatabaseHelper.DataObject>, Integer, String> {
+class UploadAsyncTask extends AsyncTask<List<LocationObject>, Integer, String> {
     private static final String TAG = "UploadAsyncTask";
     private final Context context;
 
@@ -28,7 +28,7 @@ class UploadAsyncTask extends AsyncTask<List<DatabaseHelper.DataObject>, Integer
 
     @Override
     @SafeVarargs
-    protected final String doInBackground(List<DatabaseHelper.DataObject>... params) {
+    protected final String doInBackground(List<LocationObject>... params) {
 
         // TODO Read this ...
         // http://stackoverflow.com/a/9963705/220472

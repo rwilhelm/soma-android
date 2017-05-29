@@ -16,9 +16,6 @@ final class Constants {
     /* Application settings */
     interface CONFIG {
 
-        /* Start tracking when app (MapActivity) starts */
-        boolean AUTO_START = true;
-
         /* Update the location evey 5 seconds */
         long UPDATE_INTERVAL = 5000;
 
@@ -28,41 +25,38 @@ final class Constants {
 
     interface ACTION {
 
+        /* Alarms */
+        String SET_FIRST_ALARM = "de.uniko.fb1.SoMA.action.SET_FIRST_ALARM";
+        String SET_NEXT_ALARM = "de.uniko.fb1.SoMA.action.SET_NEXT_ALARM";
+        String UPLOAD_SCHEDULER_NOTIFY = "de.uniko.fb1.SoMA.action.UPLOAD_SCHEDULER_NOTIFY";
+
         /* Alarm goes off and triggers data upload */
         String SCHEDULED_UPLOAD = "de.uniko.fb1.SoMA.action.SCHEDULED_UPLOAD";
         String MANUAL_UPLOAD = "de.uniko.fb1.SoMA.action.MANUAL_UPLOAD";
-        String SET_INITIAL_ALARM = "de.uniko.fb1.SoMA.action.SET_INITIAL_ALARM";
-
-        /* LocationAssistant reconfigured */
-        String ASSISTANT_PERMISSION_UPDATED = "de.uniko.fb1.SoMA.action.ASSISTANT_PERMISSION_UPDATED";
+        String UPLOAD_DATA = "de.uniko.fb1.SoMA.action.UPLOAD_DATA";
 
         /* When you tap the notification */
         String RESUME_FOREGROUND_ACTION = "de.uniko.fb1.SoMA.action.RESUME_FOREGROUND_ACTION";
 
-        /* -> LocationService */
+        /* -> NotificationService */
         String START_LOCATION_SERVICE = "de.uniko.fb1.SoMA.action.START_LOCATION_SERVICE";
         String STOP_LOCATION_SERVICE = "de.uniko.fb1.SoMA.action.STOP_LOCATION_SERVICE";
 
-        /* -> LocationAssistant */
-        String START_LOCATION_ASSISTANT = "de.uniko.fb1.SoMA.action.START_LOCATION_ASSISTANT";
-        String STOP_LOCATION_ASSISTANT = "de.uniko.fb1.SoMA.action.STOP_LOCATION_ASSISTANT";
+        String UPDATE_ALARM_INFO = "de.uniko.fb1.SoMA.action.UPDATE_ALARM_INFO";
+        String UPDATE_LOCATION_COUNT = "de.uniko.fb1.SoMA.action.UPDATE_LOCATION_COUNT";
+
+        String FUSED_LOCATION_API_DISCONNECTED = "de.uniko.fb1.SoMA.action.UPDATE_ALARM_INFO";
+    }
+
+    interface EVENT {
 
         /* New location received */
-        String LOCATION_UPDATED = "de.uniko.fb1.SoMA.action.LOCATION_UPDATED";
-
-        /* Upload successful */
-        String UPLOAD_SUCCESS = "de.uniko.fb1.SoMA.action.UPLOAD_SUCCESS";
-
-        /* Upload failed */
-        String CONNECTION_FAILED = "de.uniko.fb1.SoMA.action.CONNECTION_FAILED";
-
-        String UPDATE_ALARM_INFO = "de.uniko.fb1.SoMA.action.UPDATE_ALARM_INFO";
+        String LOCATION_UPDATED = "de.uniko.fb1.SoMA.event.LOCATION_UPDATED";
+        String ALARM_TRIGGERED = "de.uniko.fb1.SoMA.event.ALARM_TRIGGERED";
+        String GOOGLE_API_CLIENT_CONNECTED = "de.uniko.fb1.SoMA.event.GOOGLE_API_CLIENT_CONNECTED";
     }
 
-    public interface EVENT {
-    }
-
-    public interface NOTIFICATION_ID {
+    interface NOTIFICATION_ID {
         int FOREGROUND_SERVICE = 101;
     }
 

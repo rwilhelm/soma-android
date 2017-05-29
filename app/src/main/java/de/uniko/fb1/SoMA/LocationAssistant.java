@@ -52,7 +52,6 @@ import com.google.android.gms.location.LocationSettingsStatusCodes;
 /**
  * A helper class that monitors the available location info on behalf of a requesting activity or application.
  */
-@SuppressWarnings("SameParameterValue")
 public class LocationAssistant
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
@@ -176,12 +175,12 @@ public class LocationAssistant
     private final int REQUEST_LOCATION_PERMISSION = 1;
 
     // Parameters
-    private final Context context;
+    protected Context context;
     private Activity activity;
     private Listener listener;
-    private final int priority;
-    private final long updateInterval;
-    private final boolean allowMockLocations;
+    private int priority;
+    private long updateInterval;
+    private boolean allowMockLocations;
     private boolean verbose;
     private boolean quiet;
 
@@ -191,8 +190,8 @@ public class LocationAssistant
     private boolean locationStatusOk;
     private boolean changeSettings;
     private boolean updatesRequested;
-    Location bestLocation;
-    private GoogleApiClient googleApiClient;
+    protected Location bestLocation;
+    public GoogleApiClient googleApiClient;
     private LocationRequest locationRequest;
     private Status locationStatus;
     private boolean mockLocationsEnabled;
@@ -294,6 +293,7 @@ public class LocationAssistant
     public void stop() {
         if (googleApiClient.isConnected()) {
             LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
+            context.sendBroadcast(new Intent(Constants.ACTION.FUSED_LOCATION_API_DISCONNECTED));
             googleApiClient.disconnect();
         }
         permissionGranted = false;
@@ -323,17 +323,6 @@ public class LocationAssistant
         locationStatusOk = false;
         updatesRequested = false;
         acquireLocation();
-    }
-
-    /**
-     * Return some status
-     * */
-    public boolean isConnected() {
-        return googleApiClient.isConnected();
-    }
-
-    public boolean isLocationStatusOk() {
-        return locationStatusOk;
     }
 
     /**
@@ -451,7 +440,7 @@ public class LocationAssistant
         }
     }
 
-    private void acquireLocation() {
+    protected void acquireLocation() {
         if (!permissionGranted) checkLocationPermission();
         if (!permissionGranted) {
             if (numTimesPermissionDeclined >= 2) return;
@@ -482,7 +471,12 @@ public class LocationAssistant
         if (!updatesRequested) {
             requestLocationUpdates();
             // Check back in a few
-            new Handler().postDelayed(this::acquireLocation, 10000);
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    acquireLocation();
+                }
+            }, 10000);
             return;
         }
 
@@ -492,7 +486,7 @@ public class LocationAssistant
         }
     }
 
-    private void checkInitialLocation() {
+    protected void checkInitialLocation() {
         if (!googleApiClient.isConnected() || !permissionGranted || !locationRequested || !locationStatusOk) return;
         try {
             Location location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
@@ -511,7 +505,6 @@ public class LocationAssistant
         // Starting with API level >= 18 we can (partially) rely on .isFromMockProvider()
         // (http://developer.android.com/reference/android/location/Location.html#isFromMockProvider%28%29)
         // For API level < 18 we have to check the Settings.Secure flag
-        //noinspection deprecation
         if (Build.VERSION.SDK_INT < 18 &&
                 !android.provider.Settings.Secure.getString(context.getContentResolver(), android.provider.Settings
                         .Secure.ALLOW_MOCK_LOCATION).equals("0")) {
@@ -585,7 +578,7 @@ public class LocationAssistant
         }
     }
 
-    private final DialogInterface.OnClickListener onGoToLocationSettingsFromDialog = new DialogInterface.OnClickListener() {
+    private DialogInterface.OnClickListener onGoToLocationSettingsFromDialog = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int which) {
             if (activity != null) {
@@ -598,7 +591,7 @@ public class LocationAssistant
         }
     };
 
-    private final View.OnClickListener onGoToLocationSettingsFromView = new View.OnClickListener() {
+    private View.OnClickListener onGoToLocationSettingsFromView = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             if (activity != null) {
@@ -611,7 +604,7 @@ public class LocationAssistant
         }
     };
 
-    private final DialogInterface.OnClickListener onGoToDevSettingsFromDialog = new DialogInterface.OnClickListener() {
+    private DialogInterface.OnClickListener onGoToDevSettingsFromDialog = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int which) {
             if (activity != null) {
@@ -624,7 +617,7 @@ public class LocationAssistant
         }
     };
 
-    private final View.OnClickListener onGoToDevSettingsFromView = new View.OnClickListener() {
+    private View.OnClickListener onGoToDevSettingsFromView = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             if (activity != null) {
@@ -637,7 +630,7 @@ public class LocationAssistant
         }
     };
 
-    private final DialogInterface.OnClickListener onGoToAppSettingsFromDialog = new DialogInterface.OnClickListener() {
+    private DialogInterface.OnClickListener onGoToAppSettingsFromDialog = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int which) {
             if (activity != null) {
@@ -653,7 +646,7 @@ public class LocationAssistant
         }
     };
 
-    private final View.OnClickListener onGoToAppSettingsFromView = new View.OnClickListener() {
+    private View.OnClickListener onGoToAppSettingsFromView = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             if (activity != null) {
@@ -692,6 +685,13 @@ public class LocationAssistant
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+
+//        Intent intent = new Intent(context, MapsActivity.class);
+//        intent.setAction(Constants.EVENT.GOOGLE_API_CLIENT_CONNECTED);
+//        context.startService(intent);
+
+        context.sendBroadcast(new Intent(Constants.EVENT.GOOGLE_API_CLIENT_CONNECTED));
+
         acquireLocation();
     }
 
@@ -732,7 +732,7 @@ public class LocationAssistant
                     connectionResult.getErrorMessage());
     }
 
-    private final ResultCallback<LocationSettingsResult> onLocationSettingsReceived = new ResultCallback<LocationSettingsResult>() {
+    ResultCallback<LocationSettingsResult> onLocationSettingsReceived = new ResultCallback<LocationSettingsResult>() {
         @Override
         public void onResult(@NonNull LocationSettingsResult result) {
             locationRequested = true;

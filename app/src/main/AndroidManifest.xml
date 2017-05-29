@@ -96,20 +96,36 @@
         </service>
 
         <service
-            android:name="de.uniko.fb1.SoMA.LocationService"
-            android:exported="false" />
-
-        <receiver
-            android:name="de.uniko.fb1.SoMA.UploadScheduler"
-            android:enabled="true"
-            android:exported="true">
+            android:name="de.uniko.fb1.SoMA.NotificationService"
+            android:exported="false" >
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.ACTION_SHUTDOWN" />
-                <action android:name="de.uniko.fb1.SoMA.action.SCHEDULED_UPLOAD" />
-                <action android:name="de.uniko.fb1.SoMA.action.SET_INITIAL_ALARM" />
+                <action android:name="android.intent.action.TIME_TICK" />
+
+                <action android:name="de.uniko.fb1.SoMA.action.SET_FIRST_ALARM" />
+                <action android:name="de.uniko.fb1.SoMA.action.SET_NEXT_ALARM" />
+
+                <action android:name="de.uniko.fb1.SoMA.event.ALARM_TRIGGERED" />
+                <action android:name="de.uniko.fb1.SoMA.event.LOCATION_UPDATED" />
+            </intent-filter>
+        </service>
+
+        <receiver
+            android:name=".AlarmReceiver"
+            android:enabled="true"
+            android:process=":remote">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_TICK" />
+
+                <action android:name="de.uniko.fb1.SoMA.action.SET_FIRST_ALARM" />
+                <action android:name="de.uniko.fb1.SoMA.action.SET_NEXT_ALARM" />
+
+                <action android:name="de.uniko.fb1.SoMA.event.ALARM_TRIGGERED" />
+                <action android:name="de.uniko.fb1.SoMA.event.LOCATION_UPDATED" />
             </intent-filter>
         </receiver>
+
     </application>
 
 </manifest>
