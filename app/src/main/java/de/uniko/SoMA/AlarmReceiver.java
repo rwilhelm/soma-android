@@ -38,13 +38,13 @@ public class AlarmReceiver extends BroadcastReceiver {
         }
 
         if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
-            Log.i(TAG, "[ALARM/BOOT] COMPLETED");
+            Log.i(TAG, "[BOOT] COMPLETED");
             setInitialAlarm(context);
             startNotificationService(context);
 
         } else if (intent.getAction().equals(Intent.ACTION_TIME_TICK)) {
             if(intent.getAction().compareTo(Intent.ACTION_TIME_TICK)==0) {
-                Log.v(TAG, "[ALARM/TICK] " + new Date().getTime());
+                Log.v(TAG, "[TICK] " + new Date().getTime());
                 listAlarms(context);
             }
 

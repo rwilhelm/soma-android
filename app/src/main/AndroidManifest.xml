@@ -97,22 +97,7 @@
 
         <service
             android:name="de.uniko.SoMA.NotificationService"
-            android:exported="false" >
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.TIME_TICK" />
-
-                <action android:name="de.uniko.SoMA.action.SET_FIRST_ALARM" />
-                <action android:name="de.uniko.SoMA.action.SET_FIRST_ALARM" />
-                <action android:name="de.uniko.SoMA.action.SET_NEXT_ALARM" />
-                <action android:name="de.uniko.SoMA.action.SET_NEXT_ALARM" />
-
-                <action android:name="de.uniko.SoMA.event.ALARM_TRIGGERED" />
-                <action android:name="de.uniko.SoMA.event.ALARM_TRIGGERED" />
-                <action android:name="de.uniko.SoMA.event.LOCATION_UPDATED" />
-                <action android:name="de.uniko.SoMA.event.LOCATION_UPDATED" />
-            </intent-filter>
-        </service>
+            android:exported="false" />
 
         <receiver
             android:name="de.uniko.SoMA.AlarmReceiver"
@@ -123,14 +108,9 @@
                 <action android:name="android.intent.action.TIME_TICK" />
 
                 <action android:name="de.uniko.SoMA.action.SET_FIRST_ALARM" />
-                <action android:name="de.uniko.SoMA.action.SET_FIRST_ALARM" />
-                <action android:name="de.uniko.SoMA.action.SET_NEXT_ALARM" />
                 <action android:name="de.uniko.SoMA.action.SET_NEXT_ALARM" />
 
                 <action android:name="de.uniko.SoMA.event.ALARM_TRIGGERED" />
-                <action android:name="de.uniko.SoMA.event.ALARM_TRIGGERED" />
-                <action android:name="de.uniko.SoMA.event.LOCATION_UPDATED" />
-                <action android:name="de.uniko.SoMA.event.LOCATION_UPDATED" />
             </intent-filter>
         </receiver>
 
@@ -138,5 +118,6 @@
             android:name="io.fabric.ApiKey"
             android:value="36d298f2a3948afbd9b8f3741fac5f8e62038500"
             />
+
     </application>
 </manifest>

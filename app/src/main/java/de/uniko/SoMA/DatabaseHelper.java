@@ -145,7 +145,7 @@ class DatabaseHelper extends SQLiteOpenHelper {
      * Get all locations in the database
      */
     List<LocationObject> getLocations() {
-//        Log.i(TAG, "getLocations");
+        Log.d(TAG, "getLocations");
 
         String LOCATIONS_SELECT_QUERY =
                 String.format("SELECT * FROM %s", TABLE_LOCATION);
