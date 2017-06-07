@@ -1,8 +1,3 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <item name="location_availability" type="id">Location available</item>
-    <item name="location_expiration_time" type="id">Expiration Time</item>
-    <item name="location_max_wait_time" type="id">Max wait time</item>
-    <item name="location_num_updates" type="id">Num updates</item>
-    <item name="location_smallest_displacement" type="id">Smallest displacement</item>
 </resources>

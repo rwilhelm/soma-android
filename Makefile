@@ -1,4 +1,4 @@
-APP_NAME = de.uniko.fb1.soma
+APP_NAME = SoMA.soma
 APK_OUTPUT_DIR = app/build/outputs/apk
 OUTPUT_APK_RELEASE = $(APK_OUTPUT_DIR)/app-release-unsigned.apk
 OUTPUT_APK_DEBUG = $(APK_OUTPUT_DIR)/app-debug.apk

@@ -8,17 +8,17 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:288893270266:android:eedc65e92f05e4c6",
+        "mobilesdk_app_id": "1:288893270266:android:f485d6ee6b5acebd",
         "android_client_info": {
-          "package_name": "de.uniko.fb1.SoMA"
+          "package_name": "de.uniko.SoMA"
         }
       },
       "oauth_client": [
         {
-          "client_id": "288893270266-q9auf404cog88suf8eoq0vbpdiff3kmi.apps.googleusercontent.com",
+          "client_id": "288893270266-14imvv2hgukllleovd57vcnbp2l4q5mo.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "de.uniko.fb1.SoMA",
+            "package_name": "de.uniko.SoMA",
             "certificate_hash": "137517b568bc466423e1bf73067f4acfb2d276dd"
           }
         },
@@ -39,6 +39,13 @@
         "appinvite_service": {
           "status": 2,
           "other_platform_oauth_client": [
+            {
+              "client_id": "288893270266-ibfs6dept8iaevbled2hg6jhpi3r0qc2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "de.uniko.SoMA"
+              }
+            },
             {
               "client_id": "288893270266-figtcu6747dsnovhpct4866i8og7g0en.apps.googleusercontent.com",
               "client_type": 3
